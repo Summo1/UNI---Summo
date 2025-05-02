@@ -10,7 +10,13 @@ from support import *
 
 
 def num_hours() -> float:
-    return 12.4
+    """
+    returns number of hours worked on the project
+    >>> num_hours()
+    15.5
+    """
+
+    return 15.5
 
 def move_to_index(cellID:str) -> tuple[int,int]:
 
@@ -20,8 +26,8 @@ def move_to_index(cellID:str) -> tuple[int,int]:
         (0,4)
     """
 
-    rowIndex = ord(cellID[0].upper()) - 65
-    columnIndex = int(cellID[1:len(cellID)+1]) - 1
+    rowIndex = ord(cellID[0].upper()) - 65 # converting letter to numerical order and then to relevant coord
+    columnIndex = int(cellID[1:len(cellID)+1]) - 1 #converting everything after the letter as though it was one number, down a number for index
 
     numericID = (rowIndex, columnIndex)
     return numericID
@@ -34,8 +40,8 @@ def move_to_numeric(numericID:tuple[int,int]) -> str:
         >>> move_to_index(0,4)
         'A5'
     """
-
-    cellID = str(chr(numericID[0] + 65)) + str(numericID[1] + 1)
+    #converting first number to a letter and then second number up by one
+    cellID = str(chr(numericID[0] + 65)) + str(numericID[1] + 1) 
         
     return cellID
 
@@ -50,7 +56,7 @@ def generate_empty_board(size:int) -> list[list[str]]:
     """
     
     emptyBoard = []
-    for rowFiller in range(size):
+    for rowFiller in range(size): # filling in '+'
         emptyBoard.append([])
         for columnFiller in range(size):
             emptyBoard[rowFiller].append('+')
@@ -66,7 +72,9 @@ def generate_initial_board():
 
     """
 
-    playBoard = generate_empty_board(8)
+    playBoard = generate_empty_board(8) 
+
+    # filling in the centre four squares as desired
 
     playBoard[3][3] = 'O'
     playBoard[4][4] = 'O'
@@ -86,15 +94,18 @@ def check_winner(board:list[list[str]]) -> str:
         >>> check_winner([[X,X,O],[1,2,X]])
         'X'
     """
-    
+    #tallies
+
     counterX = 0
     counterO = 0
     for rowCounter in range(len(board)):
         for item in board[rowCounter]:
-            if item == 'X':
+            # adding to X and O based on found characters
+            if item == 'X': 
                 counterX += 1
             elif item == 'O':
                 counterO += 1
+    # logic to determin winner
     if counterX > counterO:
         return 'X'
     elif counterX < counterO:
@@ -105,9 +116,9 @@ def check_winner(board:list[list[str]]) -> str:
 def get_intermediate_locations(position: tuple[int, int], new_position: tuple[int, int]) -> list[tuple[int, int]]:
 
     """
-        Returns a list of indexes (row, column) that lie within a straight line of two points
+        Returns a list of indexes (row, column) that are in a straight line between two points
         Lines can be vertical, horizontal or, diagonal
-        Returns an empty list if the coordinates do not have lines between them or are adjacent coordinates
+        Returns an empty list if the coordinates do not have lines between them or they are adjacent coordinates
 
         >>> get_intermediate_locations((0,0), (0,3))
         [(0, 1), (0, 2)]
@@ -129,33 +140,36 @@ def get_intermediate_locations(position: tuple[int, int], new_position: tuple[in
 
     list_of_locations = []
 
+    # direction to account for negatives [row direction, column direction]
     direction = [0,0]
     
     
-    if position == new_position:
+    if position == new_position: # Returns nothing if the same coord is start and end position
         return list_of_locations
 
-    elif position[0] == new_position[0]:
+    elif position[0] == new_position[0]: #If positions share a row then checks the coords between them horizontally
         direction = [0, (new_position[1] - position[1])//abs(new_position[1] - position[1])]
         for x in range(0, new_position[1] - position[1], direction[1]):
             list_of_locations.append((position[0], position[1] + x))
         list_of_locations.remove(list_of_locations[0])
         return list_of_locations
 
-    elif position[1] == new_position[1]:
+    elif position[1] == new_position[1]: #If positions share a column then checks the coords between them vertically
         direction = [(new_position[0] - position[0])//abs(new_position[0] - position[0]), 0]
         for x in range(0, new_position[0] - position[0], direction[0]):
             list_of_locations.append((position[0] + x, position[1]))
         list_of_locations.remove(list_of_locations[0])
         return list_of_locations
 
-    elif (new_position[0] - position[0])/(new_position[1] - position[1]) == 1 or (new_position[0] - position[0])/(new_position[1] - position[1]) == -1:
-        direction = [(new_position[0] - position[0])//abs(new_position[0] - position[0]), (new_position[1] - position[1])//abs(new_position[1] - position[1])]
+    #diagonal checking
+
+    elif (new_position[0] - position[0])/(new_position[1] - position[1]) == 1 or (new_position[0] - position[0])/(new_position[1] - position[1]) == -1: #finds if the line between two coords has gradient of 1
+        direction = [(new_position[0] - position[0])//abs(new_position[0] - position[0]), (new_position[1] - position[1])//abs(new_position[1] - position[1])] #determines the direction vertically and horizontally that cells will be iterated through 
         
         temp_list = []
-        for vert in range(0, new_position[0] - position[0], direction[0]):
+        for vert in range(0, new_position[0] - position[0], direction[0]): # vertical coordinate of coords on diagonal
             temp_list.append([position[0] + vert])
-        for horiz in range(0, new_position[1] - position[1], direction[1]):
+        for horiz in range(0, new_position[1] - position[1], direction[1]): # horizontal coordinate of coords on diagonal
             temp_list[horiz].append(position[1] + horiz)
         for a in range(len(temp_list)):
             list_of_locations.append((temp_list[a][0],temp_list[a][1]))
@@ -167,42 +181,6 @@ def get_intermediate_locations(position: tuple[int, int], new_position: tuple[in
         return list_of_locations
 
     
-def generate_dashed_row(width:int) -> str:
-
-    """
-        Generates a dashed row based on the width of a board for displaying a board. 2nd and final rows
-
-        >>> generate_dashed_row(4)
-        '  ----\n'
-    """
-
-
-    dashedRow = '  '
-    for w in range(width):
-        dashedRow += '-'
-    dashedRow += '\n'
-    
-    return dashedRow
-
-def generate_header_rows(width:int) -> str:
-
-    """
-    Generates a header row for displaying a board that has the column numbers and a dashed row
-
-    >>> generate_header_rows(4)
-    '  1234\n  ----\n'
-    """
-
-
-    headerRows = '  '
-    dashes = generate_dashed_row(width)
-
-    for w in range(width):
-        headerRows += str(w+1)
-    headerRows += '\n' + dashes
-    
-    return headerRows
-
 def determine_other_player(piece:str):
 
     """
@@ -217,17 +195,53 @@ def determine_other_player(piece:str):
 
 
     other_piece = ""
-    
+    # if X -> O if O -> X
     if piece == "X":
         other_piece = "O"
     elif piece == "O":
         other_piece = "X"
     return other_piece
 
-def display_board(board:list[list[str]]) -> str: 
+
+
+def generate_dashed_row(width:int) -> str:
 
     """
-    prints the inputted board in a visually appealing manner
+        Generates a dashed row based on the width of a board for displaying a board. 2nd and final rows
+
+        >>> generate_dashed_row(4)
+        '  ----'
+    """
+
+    dashedRow = '  ' # generates a row of dashes a given distance wide that has a 2 column space for the formatting specifications
+    for w in range(width):
+        dashedRow += '-'
+    return dashedRow
+
+def generate_header_rows(width:int) -> str:
+
+    """
+    Generates a header row for displaying a board that has the column numbers and a dashed outlining row
+
+    >>> generate_header_rows(4)
+    '  1234\n  ----\n'
+    """
+
+
+    headerRows = '  ' ## adds spaces for formatting purposes
+    dashes = generate_dashed_row(width) # gets the second row of dashes
+
+    for w in range(width):
+        headerRows += str(w+1)
+    headerRows += '\n' + dashes
+    
+    return headerRows
+
+
+def display_board(board:list[list[str]]): 
+
+    """
+    Displays the board in a readable format
     >>> board = generate_initial_board()
     >>> display_board(board)
           12345678
@@ -243,25 +257,26 @@ def display_board(board:list[list[str]]) -> str:
           --------
     """
 
-    header = generate_header_rows(len(board[0]))
-    footer = generate_dashed_row(len(board[0]))
-    displayedBoard = header
-    
+    header = generate_header_rows(len(board[0])) #gets a header
+
+    footer = generate_dashed_row(len(board[0])) # gets a footer
+
+    print(header) #prints header before the rows
+
     for rowNum in range(len(board)):
-        displayedBoard = displayedBoard + chr(65+rowNum) + '|'
+        row = chr(65+rowNum) + '|'
         for colNum in range(len(board[0])):
-                displayedBoard += board[rowNum][colNum]
+            row += board[rowNum][colNum]
+        row += '|'
 
-        displayedBoard += '| \n'
-    displayedBoard += footer
-        
-    return print(displayedBoard)
-
+        print(row) # prints each row iterably
+    
+    print(footer) # prints footer after the rows
 
 def get_valid_command(valid_moves: list[str]) -> str:
 
     """
-        Prompts the user until they input a valid command based on a set of valid moves 
+        Repeatedly asks for inputs until the user gives one that is within a list of valid options. This is not case sensitive but will return caps 
         Only returns the move when a user inputs a valid command
         >>> get_valid_command(["A1","B4"])
         Please enter move (Or H for help): R1
@@ -271,26 +286,24 @@ def get_valid_command(valid_moves: list[str]) -> str:
         'B4'
     """
 
-    user_input = input("Please enter move (Or H for help): ")
+    user_input = input("Please enter move (Or H for help): ") # asks user for an input to make a move
 
-    if user_input == 'h' or user_input == 'H':
-        print("\n [A-H][1-8]: Please place at specified square. \n H/h: Display help message. \n Q/q: Quit current game.")
-        get_valid_command(valid_moves)
-        pass
+    if user_input.upper() == 'H': #help menu
+        return 'H'
 
-    elif user_input == 'q' or user_input == 'Q':
-        return 'end'
+    elif user_input.upper() == 'Q': # quit game
+        return 'Q'
         
-    elif user_input in valid_moves or user_input.upper() in valid_moves:
-        return str(user_input.upper())
+    elif user_input.upper() in valid_moves: #returns the valid move to the user formatted to upper case
+        return user_input.upper()
     
     else:
-        get_valid_command(valid_moves)
+        return get_valid_command(valid_moves) #prompts again
 
 def determine_locations(board: list[list[str]], piece: str) -> list[tuple[int,int]]:
 
     """
-        Determines all the locations on the board of a specific piece
+        Determines all the locations on the board of the player's piece
         Precondition:
             Only 'X' and 'O' are pieces to be input
 
@@ -301,7 +314,7 @@ def determine_locations(board: list[list[str]], piece: str) -> list[tuple[int,in
 
 
     locations_of_pieces = []
-
+    # iterates through the board to determine if any square is the inputted piece
     for row in range(len(board)):
         for column in range(len(board[0])):
             if board[row][column] == piece:
@@ -315,7 +328,7 @@ def determine_locations(board: list[list[str]], piece: str) -> list[tuple[int,in
 def get_reversed_positions(board: list[list[str]], piece: str, position: tuple[int,int]) -> list[tuple[int,int]]:
 
     """
-        Determines what indexes (row,column) would be reversed if a player placed a piece at a certain position on a given board
+        Determines all the cells that would be flipped to the player's piece if they made a move at a given position
 
         board = generate_initial_baord()
         >>> get_reversed_positions(board, 'X', (2,3))
@@ -327,17 +340,14 @@ def get_reversed_positions(board: list[list[str]], piece: str, position: tuple[i
     other_players_pieces = determine_locations(board,other_piece)
     existing_positions = determine_locations(board, piece)
     
-    if position in other_players_pieces or position in existing_positions:
-        return reversed_positions
-    
     for x in existing_positions:
-        line = get_intermediate_locations(x, position)
+        line = get_intermediate_locations(x, position) # gets the lines between the inputted position and every piece of the players type
         valid = True
-        if line:
+        if line: 
             for y in line:
-                if y not in other_players_pieces:
+                if y not in other_players_pieces: # If every item in the line is not the other players pieces ditch the line as it doesnt fit the game rules
                    valid = False
-            if valid:
+            if valid: # if the line fits the game rules add it to the reversed positions
                 for a in range(len(line)):
                     reversed_positions.append(line[a])
         
@@ -347,7 +357,7 @@ def get_reversed_positions(board: list[list[str]], piece: str, position: tuple[i
 def get_available_moves(board: list[list[str]], player: str) -> list[str]:
 
     """
-        Determines a list of valid moves a player can make according to the game rules
+        Returns a list of valid moves a player can make 
         Moves are output as a cellID with a letter (a-z) and a number. 
         >>> board = generate_initial_board()
         >>> get_available_moves(board, "X")
@@ -360,11 +370,13 @@ def get_available_moves(board: list[list[str]], player: str) -> list[str]:
     other_players_pieces = determine_locations(board, other_piece)
     for x in current_pieces:
         for row in range(len(board)):
-            for column in range(len(board[0])):
-                reverse = get_reversed_positions(board, player, (row,column))
-                if reverse and (row,column) not in available_moves:
-                    available_moves.append((row,column))                   
-    for move in range(len(available_moves)):
+            for column in range(len(board[0])): # iterates through the board and gets the reversable lines between every cell and all the players pieces
+                reverse = get_reversed_positions(board, player, (row,column)) 
+                  # if the line has something in it and fits the game rules add the cell that generated that line to available moves
+                for item in reverse:
+                    if item in other_players_pieces and (row,column) not in available_moves and not (row,column) in other_players_pieces:
+                        available_moves.append((row,column))                
+    for move in range(len(available_moves)): # format moves for user
         available_moves[move] = move_to_numeric(available_moves[move])
         
     
@@ -373,11 +385,11 @@ def get_available_moves(board: list[list[str]], player: str) -> list[str]:
 def make_move(board: list[list[str]], piece: str, move: str):
 
     """
-        Places the given piece at the designated position on the board, and updates the game state according to the game rules.
+        Places the players piece at the given cell and affects the board accordingly
         Preconditions: 
-        Move is well formed, and given in upper case 
-        Move corresponds to a position that exists on the board 
-        Each row of board will contain the same number of columns
+        - Move is well formed, and given in upper case 
+        - Move corresponds to a position that exists on the board 
+        - Each row of board will contain the same number of columns
 
         >>> board = generate_initial_board()
         >>> display_board(board)
@@ -410,90 +422,105 @@ def make_move(board: list[list[str]], piece: str, move: str):
           --------  
     """
 
-    move_index = move_to_index(move)
-
-    action_coord = move_to_index(move)
-    reversed_indexes = get_reversed_positions(board, piece, action_coord)
-    for coord in range(len(reversed_indexes)):
+    move_index = move_to_index(move) # change from user format to index
+    reversed_indexes = get_reversed_positions(board, piece, move_index) #gets the correct lines to be reveresed
+    for coord in range(len(reversed_indexes)): #changes all the cells in the reversed lines to the players piece
         board[reversed_indexes[coord][0]][reversed_indexes[coord][1]] = piece
 
-    board[move_index[0]][move_index[1]] = piece
+    board[move_index[0]][move_index[1]] = piece # place a piece where the player moved
     display_board(board)
-    return board
 
 
-    
-
-                
+       
 def play_game():
 
     """
-    
+        Plays the game of reversi as per specifications 
+        When game is started users an initial game board will be shown and Player 1 'X' will be prompted to have their turn.
+        A player should input one of the given moves 
     """
 
-
-    print("Welcome to Reversi! \n")
+    # initial setup
+    print("Welcome to Reversi!")
     board = generate_initial_board()
     display_board(board)
-    player_turn = 0
+
+    # Tracks whose turn it is 
+    player_turn = 0 
     current_player = 'X'
+
+
     game_on = True
     
-    while game_on == True:
+    while game_on: # loop for while a game is in progress
+        # Statements for whos turn it is
         if player_turn%2 == 0:
             current_player = 'X'
-            print("Player 1 to move")
+            
         else:
             current_player = 'O'
-            print("Player 2 to move")
-        print(current_player)
+        
+        print(f"Player {current_player} to move")
+
+        # List of available moves
         options = get_available_moves(board, current_player)
         available_moves = ""
+
+        # Converts the list to a string
+
         for index in options:
             if not available_moves == "":
                 available_moves += f",{index}"
             else:
                 available_moves += index
 
-        if available_moves == "":
-            break
+        # Ends game if a player has no moves
+        if available_moves == "": 
+            game_on = False
         
-        print(f"Possible moves: {available_moves}")
+        print(f"Available moves: {available_moves}")
 
+        # Gets the input so a player can make a move
         action = get_valid_command(options)
-        if action == 'end':
-            break
 
+        # Quits game if user inputs q
+        if action == 'Q':
+            game_on = False
+        
+        # Displays help message if user inputs h
+        elif action =='H':
+            print("\n [A-H][1-8]: Make a move at a given cell. \n H/h: Display help message. \n Q/q: End game")
+            get_valid_command(options)
+
+        # Makes the move the user inputs
         make_move(board, current_player, action)
-        
-        
-
-        
-        
-
 
         player_turn += 1
 
+    #Game has ended
+
     print("Game Over!")
     winner = check_winner(board)
+
+    # Prints winner
     if winner == '':
-        print("Its a draw! Now that is impressive.")
+        print("This game resulted in a draw")
     else:
-        print(winner)
+        print(f"{winner} is the winner, you're amazing!")
+
+    # Rematch??? Yes!!
     play_again = input("Would you like to play again? (y/n): ")
     if play_again == 'y':
         play_game()
 
-    pass
 
 def main() -> None:
     """
-    The main function (You should write a better docstring!)
-    play_game()
+    This function will execute the game and will be initialised on the documents running
+
+    It requires no input and should return no values.
     """
     play_game()
-    
-    pass
 
 
 if __name__ == "__main__":
