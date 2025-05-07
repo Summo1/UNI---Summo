@@ -1,3 +1,3 @@
 SELECT RoleID, COUNT(*) as NumberOfPermissions
-FROM Permissions
+FROM Permission
 GROUP BY RoleID

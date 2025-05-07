@@ -1,3 +1,3 @@
 SELECT WebsiteURI, COUNT(*) as NumberOfRoles
-FROM Permissions
+FROM Permission
 GROUP By WebsiteURI;
