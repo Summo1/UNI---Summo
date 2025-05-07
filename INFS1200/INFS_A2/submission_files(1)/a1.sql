@@ -1,0 +1,1 @@
+SELECT FirstName, LastName from Employee ORDER BY LastName ASC;
