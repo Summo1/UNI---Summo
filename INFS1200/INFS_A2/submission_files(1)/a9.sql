@@ -1,10 +1,10 @@
 SELECT EmployeeID, FirstName, LastName From Employee
-WHERE EmployeeID IN (SELECT EmployeeID FROM AdministrativeEmployee WHERE Type = 'LegacyEngineer')
+WHERE EmployeeID IN (SELECT EmployeeID FROM AdministrativeEmployee WHERE Type = 'LegacyEngineer'
 
-OR EmployeeID IN
+UNION
 
-(SELECT EmployeeID FROM RoleGranting WHERE RoleID = '1')
+SELECT EmployeeID FROM RoleGranting WHERE RoleID = '1'
 
-OR EmployeeID IN
+UNION
 
-(SELECT EmployeeID FROM RoleGranting WHERE RoleID IN (SELECT RoleID FROM Permission WHERE WebsiteURI = 'https://besttechltd/financialperformance.tech'))
+SELECT EmployeeID FROM RoleGranting WHERE RoleID IN (SELECT RoleID FROM Permission WHERE WebsiteURI = 'https://besttechltd/financialperformance.tech'))
