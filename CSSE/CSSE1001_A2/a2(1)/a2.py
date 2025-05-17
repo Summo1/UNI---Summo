@@ -94,15 +94,23 @@ class CardDeck():
         
         pass
     def __str__(self) -> str:
+        deck = ''
         for item in self.deck:
-            return item +','
+            deck += item.symbol + ','
+        deck = deck[:len(deck)-1]
+        return deck
+        
+        
     def __repr__(self):
-        return 'CardDeck()'
+        return f'CardDeck({self.deck})'
+    
+    
     def is_empty(self) -> bool:
         if self.size == 0:
             return True
         else:
             return False
+
     def remaining_count(self) -> int:
         return self.cards_left
     
@@ -112,7 +120,7 @@ class CardDeck():
             num = self.size
         
         drawn_cards = self.deck[:num]
-        self.deck = self.deck[num-1:]
+        self.deck = self.deck[num:]
         
         self.size -= num
         self.cards_left -= num
@@ -122,15 +130,15 @@ class CardDeck():
     
     def add_card(self, card: Card):
         self.deck.append(card)
+        self.size += 1
+        self.cards_left += 1
 
     
     
         
     
 def main() -> None:
-    cards = [Card(), Card(), Shield(), Heal(), Fireball(6)]
-    deck = CardDeck(cards)
-    print(deck.draw_cards(2))
+    
     pass
 
 if __name__ == "__main__":
