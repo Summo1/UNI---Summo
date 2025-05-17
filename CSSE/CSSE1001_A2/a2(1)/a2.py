@@ -9,7 +9,7 @@ from display import HearthView
 
 # Define your classes and functions here
 class Card:
-    def __init__(self, name, description, cost, effect, symbol, **kwargs):
+    def __init__(self, name: str = "Card", description: str = 'A Card', cost: int = 1, effect: dict[str, int] = {}, symbol: str = 'C', **kwargs):
        self.name = name
        self.description = description
        self.cost = cost
@@ -17,10 +17,11 @@ class Card:
        self.symbol = symbol
 
     def __str__(self) -> str:
-        return f"{self.name} {self.description}"
+        return f"{self.name}{self.description}"
 
     def __repr__(self) -> str:
-        pass
+        return f"Card(name='{self.name}', description='{self.description}', cost={self.cost}, " \
+               f"effect={self.effect}, symbol='{self.symbol}', permanent={self.permanent})"
     def get_symbol(self) -> str:
         return self.symbol
     
@@ -36,6 +37,7 @@ class Card:
         
 
 def main() -> None:
+    
     pass
 
 if __name__ == "__main__":
