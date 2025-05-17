@@ -9,7 +9,7 @@ from display import HearthView
 
 # Define your classes and functions here
 class Card:
-    def __init__(self, name: str = "Card", description: str = 'A card', cost: int = 1, effect: dict[str, int] = {}, symbol: str = 'C', **kwargs):
+    def __init__(self, name: str = "Card", description: str = 'A card', cost: int = 1, effect: dict[str, int] = {}, symbol = 'C', **kwargs):
        self.name = name
        self.description = description
        self.cost = cost
@@ -40,16 +40,52 @@ class Card:
         
 class Shield(Card):
     def __init__(self):
-        super.__init__(
+        super().__init__(
             name = "Shield",
             description = "Cast a protective shield that can absorb 5 damage",
             cost = 1,
-            effect = {"Shield": 5},
+            effect = {"shield": 5},
             symbol = "S"
             
         )     
     def __repr__(self):
         return 'Shield()'
+    
+class Heal(Card):
+    def __init__(self):
+        super().__init__(
+            name = "Heal",
+            description = "Cast an aura on target. It recovers 2 health",
+            cost = 2,
+            effect = {"health": 2},
+            symbol = "H"
+            
+        )     
+    def __repr__(self):
+        return 'Heal()' 
+    
+
+class Fireball(Card):
+    def __init__(self, turns_in_hand: int):
+        self.turns_in_hand = turns_in_hand
+        super().__init__(
+            name = "Fireball",
+            description = f"FIREBALL! Deals 3 + [turns in hand] damage. Currently dealing {3 + self.turns_in_hand} damage",
+            cost = 3,
+            effect = {"damage": 3 + self.turns_in_hand},
+            symbol = str(self.turns_in_hand)
+        )
+        
+    def __repr__(self):
+        return f'Fireball({self.turns_in_hand})'  
+            
+    def increment_turn(self):
+        self.turns_in_hand += 1
+    
+    
+    
+        
+    
 def main() -> None:
     
     pass
