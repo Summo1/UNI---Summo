@@ -2,9 +2,9 @@
 from support import *
 from display import HearthView
 
-# Name:
-# Student Number: 
-# Favorite Building: 
+# Name: Tom Summerton  
+# Student Number: 49606782
+# Favorite Building: Pyramids of Giza
 # -----------------------------------------------------------------------------
 
 # Define your classes and functions here
