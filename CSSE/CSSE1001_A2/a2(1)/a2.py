@@ -9,21 +9,25 @@ from display import HearthView
 
 # Define your classes and functions here
 class Card:
-    def __init__(self, name: str = "Card", description: str = 'A Card', cost: int = 1, effect: dict[str, int] = {}, symbol: str = 'C', **kwargs):
+    def __init__(self, name: str = "Card", description: str = 'A card', cost: int = 1, effect: dict[str, int] = {}, symbol: str = 'C', **kwargs):
        self.name = name
        self.description = description
        self.cost = cost
        self.effect = effect
        self.symbol = symbol
+       self.permanent = False
 
     def __str__(self) -> str:
-        return f"{self.name}{self.description}"
+        return f"{self.name}: {self.description}."
 
     def __repr__(self) -> str:
-        return f"Card(name='{self.name}', description='{self.description}', cost={self.cost}, " \
-               f"effect={self.effect}, symbol='{self.symbol}', permanent={self.permanent})"
+        return 'Card()'
+
     def get_symbol(self) -> str:
         return self.symbol
+    
+    def get_name(self) -> str:
+        return self.name
     
     def get_cost(self) -> int:
         return self.cost
@@ -32,10 +36,20 @@ class Card:
         return self.effect
 
     def is_permanent(self) -> bool:
-        return 
+        return self.permanent
         
-        
-
+class Shield(Card):
+    def __init__(self):
+        super.__init__(
+            name = "Shield",
+            description = "Cast a protective shield that can absorb 5 damage",
+            cost = 1,
+            effect = {"Shield": 5},
+            symbol = "S"
+            
+        )     
+    def __repr__(self):
+        return 'Shield()'
 def main() -> None:
     
     pass
