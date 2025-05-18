@@ -249,22 +249,35 @@ class Minion(Card, Entity):
         
     
     def __str__(self) -> str:
-        return str(Card)
+        return f"{self.name}: {self.description}."
     
     def __repr__(self):
         return f'Minion({self.health}, {self.shield})'
     
     def choose_target(self, ally_hero: Entity, enemy_hero: Entity, ally_minions: list[Entity], enemy_minions: list[Entity]) -> Entity:
+        target = self
+        return target
+        
+
+class Wyrm(Minion):
+    def __init__(self, health, shield):
+        Card.__init__(
+            self, 
+            name = 'Wyrm',
+            description = 'Summon a Mana Wyrm to buff your minions',
+            cost = 2,
+            effect = {'health': 1, 'shield': 1},
+            symbol = 'W'
+            
+        )
+        Entity.__init__(self, health, shield)
+        Minion.__init__(self, health, shield)
+    
+    def choose_target():
         pass
-        
-        
     
 def main() -> None:
-    card = Minion(1,3)
-    print(card.get_name())
-    print(card.get_cost())
-    card.apply_damage(2)
-    print(card.get_health())
+    
     pass
 
 if __name__ == "__main__":
