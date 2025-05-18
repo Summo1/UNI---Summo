@@ -115,7 +115,7 @@ class CardDeck():
             return False
 
     def remaining_count(self) -> int:
-        return self.cards_left
+        return self.size
     
     def draw_cards(self, num: int) -> list[Card]:
         drawn_cards = []
@@ -126,7 +126,6 @@ class CardDeck():
         self.deck = self.deck[num:]
         
         self.size -= num
-        self.cards_left -= num
         
         
         return drawn_cards
@@ -187,13 +186,22 @@ class Hero(Entity):
         self.deck = deck
         self.hand = hand
         self.energy = max_energy
+        
+    def is_alive(self):
+        has_health = super().is_alive()
+        
+        if has_health and self.deck.remaining_count() > 0:
+            return True
+        else:
+            return False
 
     def __str__(self):
-        return f"{self.health},{self.shield},{self.max_energy};{self.deck};{self.hand}"
+        hand = ','.join(card.symbol for card in self.hand)
+        return f"{self.health},{self.shield},{self.max_energy};{self.deck};{hand}"
 
     def __repr__(self):
         
-        return f"Hero({self.health}, {self.shield}, {self.max_energy}, CardDeck({self.deck}),{self.hand.__str__()})"
+        return f"Hero({self.health}, {self.shield}, {self.max_energy}, {repr(self.deck)}, {[card for card in self.hand]})"
     
     def get_energy(self):
         return self.energy
@@ -216,15 +224,16 @@ class Hero(Entity):
     
     def new_turn(self):
         
-        for item in self.hand:
-            if isinstance(Card, Fireball):
-                item.increment_turn()
+        for card in self.hand:
+            if isinstance(card, (Fireball)):
+                card.increment_turn()
         
         drawn = self.deck.draw_cards(1)
-        self.hand += drawn
+        if len(self.hand) < 5:
+            self.hand += drawn
         self.max_energy += 1
         self.energy = self.max_energy
-        pass
+        
     
         
     
