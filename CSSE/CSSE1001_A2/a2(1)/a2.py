@@ -252,7 +252,7 @@ class Minion(Card, Entity):
         return f"{self.name}: {self.description}."
     
     def __repr__(self):
-        return f'Minion({self.health}, {self.shield})'
+        return f'{self.name}({self.health}, {self.shield})'
     
     def choose_target(self, ally_hero: Entity, enemy_hero: Entity, ally_minions: list[Entity], enemy_minions: list[Entity]) -> Entity:
         target = self
@@ -261,6 +261,8 @@ class Minion(Card, Entity):
 
 class Wyrm(Minion):
     def __init__(self, health, shield):
+        Entity.__init__(self, health, shield)
+        Minion.__init__(self, health, shield)
         Card.__init__(
             self, 
             name = 'Wyrm',
@@ -270,11 +272,55 @@ class Wyrm(Minion):
             symbol = 'W'
             
         )
+        self.permanent = True
+        
+        
+    def __str__(self):
+        return f"{self.name}: {self.description}."
+    
+    def __repr__(self):
+        return f"{self.name}({self.health}, {self.shield})"
+    
+    def choose_target(self, ally_hero: Entity, enemy_hero: Entity, ally_minions: list[Entity], enemy_minions: list[Entity]) -> Entity:
+        wyrm_target = ally_hero
+        
+        for entity in ally_minions:
+            if entity.get_health() < wyrm_target.get_health():    
+                wyrm_target = entity
+        
+        return wyrm_target
+    
+class Raptor(Minion):
+    def __init__(self, health, shield):
         Entity.__init__(self, health, shield)
         Minion.__init__(self, health, shield)
+        Card.__init__(
+            self, 
+            name = 'Raptor',
+            description = 'Summon a Bloodfen Raptor to fight for you',
+            cost = 2,
+            effect = {'damage': self.health},
+            symbol = 'R'
+            
+        )
+        self.permanent = True
+        
+        
+    def __str__(self):
+        return f"{self.name}: {self.description}."
     
-    def choose_target():
-        pass
+    def __repr__(self):
+        return f"{self.name}({self.health}, {self.shield})"
+    
+    def choose_target(self, ally_hero: Entity, enemy_hero: Entity, ally_minions: list[Entity], enemy_minions: list[Entity]) -> Entity:
+        raptor_target = enemy_hero
+        if enemy_minions:
+            raptor_target = enemy_minions[0]
+            for entity in enemy_minions:
+                if entity.get_health() > raptor_target.get_health():    
+                    raptor_target = entity
+        
+        return raptor_target
     
 def main() -> None:
     
