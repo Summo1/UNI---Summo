@@ -234,11 +234,37 @@ class Hero(Entity):
         self.max_energy += 1
         self.energy = self.max_energy
         
+class Minion(Card, Entity):
+    def __init__(self, health, shield):
+        Card.__init__(
+            self, 
+            name = 'Minion',
+            description = 'Summon a minion',
+            cost = 2,
+            effect = {},
+            symbol = 'M'
+        )
+        Entity.__init__(self, health, shield)
+        self.permanent = True
+        
     
+    def __str__(self) -> str:
+        return str(Card)
+    
+    def __repr__(self):
+        return f'Minion({self.health}, {self.shield})'
+    
+    def choose_target(self, ally_hero: Entity, enemy_hero: Entity, ally_minions: list[Entity], enemy_minions: list[Entity]) -> Entity:
+        pass
+        
         
     
 def main() -> None:
-    
+    card = Minion(1,3)
+    print(card.get_name())
+    print(card.get_cost())
+    card.apply_damage(2)
+    print(card.get_health())
     pass
 
 if __name__ == "__main__":
