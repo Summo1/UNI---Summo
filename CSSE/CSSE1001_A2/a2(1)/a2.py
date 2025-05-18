@@ -133,7 +133,46 @@ class CardDeck():
         self.size += 1
         self.cards_left += 1
 
+class Entity():
+    def __init__(self, health: int, shield: int):
+        self.health = health
+        self.shield = shield
     
+    def __repr__(self):
+        return "Entity()"
+    
+    def __str__(self):
+        return f"{self.health}, {self.shield}"
+    
+    def get_health(self):
+        return self.health
+    
+    def get_shield(self):
+        return self.shield
+    
+    def apply_shield(self, shield: int):
+        self.shield -= shield      
+    
+    def apply_health(self, health: int):
+        self.health += health
+        
+    def apply_damage(self, damage: int):
+        while self.shield > 0 and damage > 0:
+            self.shield -= 1
+            self.damage -= 1
+        
+        while self.health > 0 and damage > 0:
+            self.health -= 1
+            self.damage -= 1
+        
+    def is_alive(self): 
+        if self.health > 0:
+            return True
+        else: 
+            return False
+        
+    
+           
     
         
     
