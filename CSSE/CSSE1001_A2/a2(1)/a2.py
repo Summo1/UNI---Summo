@@ -322,6 +322,52 @@ class Raptor(Minion):
         
         return raptor_target
     
+    
+class HearthModel():
+    def __init__(self, player: Hero, active_player_minions: list[Minion], enemy: Hero, active_enemy_minions: list[Minion]):
+        self.player = player
+        self.active_player_minions = active_player_minions
+        self.enemy = enemy
+        self.active_enemy_minions = active_enemy_minions
+        
+    
+    def __str__(self) -> str:
+        pass
+    
+    def __repr__(self) -> str:
+        return f"HearthModel({self.player}, {self.active_player_minions}, {self.enemy}, {self.active_enemy_minions})"
+    
+    
+    def get_player(self) -> Hero:
+        return self.player
+    
+    def get_enemy(self) -> Hero:
+        return self.enemy
+    
+    def get_player_minions(self) -> list[Minion]:
+        return self.active_player_minions
+    
+    def get_enemy_minions(self) -> list[Minion]:
+        return self.active_enemy_minions  
+    
+    def has_won(self) -> bool:
+        if self.enemy.get_health() == 0 or self.enemy.deck.cards_left() == 0:
+            return True
+    
+    def has_lost(self) -> bool:
+        if self.player.health == 0 or self.player.deck.size == 0:
+            return True
+    
+    def play_card(self, card: Card, target: Entity) -> bool:
+        pass
+    
+    def discard_card(self, card: Card):
+        self.player.hand.remove(card)
+        self.player.deck.add_card(card)
+    
+    def end_turn(self) -> list[str]:
+        pass
+    
 def main() -> None:
     
     pass
