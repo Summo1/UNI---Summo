@@ -139,10 +139,10 @@ class Entity():
         self.shield = shield
     
     def __repr__(self):
-        return "Entity()"
+        return f"Entity({self.health}, {self.shield})"
     
     def __str__(self):
-        return f"{self.health}, {self.shield}"
+        return f"{self.health},{self.shield}"
     
     def get_health(self):
         return self.health
@@ -151,7 +151,7 @@ class Entity():
         return self.shield
     
     def apply_shield(self, shield: int):
-        self.shield -= shield      
+        self.shield += shield      
     
     def apply_health(self, health: int):
         self.health += health
@@ -159,11 +159,11 @@ class Entity():
     def apply_damage(self, damage: int):
         while self.shield > 0 and damage > 0:
             self.shield -= 1
-            self.damage -= 1
+            damage -= 1
         
         while self.health > 0 and damage > 0:
             self.health -= 1
-            self.damage -= 1
+            damage -= 1
         
     def is_alive(self): 
         if self.health > 0:
@@ -177,7 +177,11 @@ class Entity():
         
     
 def main() -> None:
-    
+    thing = Entity(3,5)
+    print(thing.get_health())
+    thing.apply_damage(7)
+    print(thing.get_shield())
+    print(thing.get_health())
     pass
 
 if __name__ == "__main__":
