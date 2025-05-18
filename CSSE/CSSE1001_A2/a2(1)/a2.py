@@ -74,7 +74,9 @@ class Fireball(Card):
             cost = 3,
             effect = {"damage": 3 + self.turns_in_hand},
             symbol = str(self.turns_in_hand)
+        
         )
+        
         
     def __repr__(self):
         return f'Fireball({self.turns_in_hand})'  
@@ -93,6 +95,7 @@ class CardDeck():
         self.cards_left = len(cards)
         
         pass
+    
     def __str__(self) -> str:
         deck = ''
         for item in self.deck:
@@ -171,17 +174,62 @@ class Entity():
         else: 
             return False
         
+
+class Hero(Entity):
+    def __init__(self, health: int, shield: int, max_energy: int, deck: CardDeck, hand: list[Card]):
+        super().__init__(
+            health = health,
+            shield = shield,
+            
+        )
+        
+        self.max_energy = max_energy
+        self.deck = deck
+        self.hand = hand
+        self.energy = max_energy
+
+    def __str__(self):
+        return f"{self.health},{self.shield},{self.max_energy};{self.deck};{self.hand}"
+
+    def __repr__(self):
+        
+        return f"Hero({self.health}, {self.shield}, {self.max_energy}, CardDeck({self.deck}),{self.hand.__str__()})"
     
-           
+    def get_energy(self):
+        return self.energy
+    
+    def spend_energy(self, energy:int):
+        if energy <= self.energy:
+            self.energy -= energy
+            return True
+        else: 
+            return False  
+    
+    def get_max_energy(self):
+        return self.max_energy
+    
+    def get_deck(self):
+        return self.deck
+    
+    def get_hand(self):
+        return self.hand
+    
+    def new_turn(self):
+        
+        for item in self.hand:
+            if isinstance(Card, Fireball):
+                item.increment_turn()
+        
+        drawn = self.deck.draw_cards(1)
+        self.hand += drawn
+        self.max_energy += 1
+        self.energy = self.max_energy
+        pass
     
         
     
 def main() -> None:
-    thing = Entity(3,5)
-    print(thing.get_health())
-    thing.apply_damage(7)
-    print(thing.get_shield())
-    print(thing.get_health())
+    
     pass
 
 if __name__ == "__main__":
