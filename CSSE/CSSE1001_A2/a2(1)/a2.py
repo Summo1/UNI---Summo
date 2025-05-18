@@ -166,7 +166,18 @@ class Entity():
         while self.health > 0 and damage > 0:
             self.health -= 1
             damage -= 1
-        
+    
+    def apply_effect(self, effect: dict[str, int]):
+
+        if 'damage' in effect:
+            self.apply_damage(effect['damage'])
+        if 'shield' in effect:
+            self.apply_shield(effect['shield'])
+        if 'health' in effect:
+            self.apply_health(effect['health'])
+            
+        pass
+    
     def is_alive(self): 
         if self.health > 0:
             return True
@@ -186,6 +197,7 @@ class Hero(Entity):
         self.deck = deck
         self.hand = hand
         self.energy = max_energy
+        self.cards_played = []
         
     def is_alive(self):
         has_health = super().is_alive()
@@ -223,7 +235,7 @@ class Hero(Entity):
         return self.hand
     
     def new_turn(self):
-        
+        self.cards_played = []
         for card in self.hand:
             if isinstance(card, (Fireball)):
                 card.increment_turn()
@@ -330,13 +342,15 @@ class HearthModel():
         self.enemy = enemy
         self.active_enemy_minions = active_enemy_minions
         
+        
     
     def __str__(self) -> str:
-        pass
+        enemy_minions = ','.join(minion.symbol and str(minion.health) and str(minion.shield) for minion in self.active_enemy_minions)
+        player_minions = ','.join(minion.symbol and str(minion.health) and str(minion.shield) for minion in self.active_player_minions)
+        return f"{str(self.player)};{player_minions}|{str(self.enemy)};{enemy_minions}"
     
     def __repr__(self) -> str:
-        return f"HearthModel({self.player}, {self.active_player_minions}, {self.enemy}, {self.active_enemy_minions})"
-    
+        return f"HearthModel({repr(self.player)}, {repr(self.active_player_minions)}, {repr(self.enemy)}, {repr(self.active_enemy_minions)})"
     
     def get_player(self) -> Hero:
         return self.player
@@ -351,25 +365,58 @@ class HearthModel():
         return self.active_enemy_minions  
     
     def has_won(self) -> bool:
-        if self.enemy.get_health() == 0 or self.enemy.deck.cards_left() == 0:
+        if self.enemy.health == 0 or self.enemy.deck.size == 0:
             return True
+        
     
     def has_lost(self) -> bool:
         if self.player.health == 0 or self.player.deck.size == 0:
             return True
+        
+    
     
     def play_card(self, card: Card, target: Entity) -> bool:
-        pass
+        if card.cost <= self.player.energy:
+            self.player.spend_energy(card.cost)
+            self.player.hand.remove(card)
+            self.player.cards_played.append(card.name)
+            if card.is_permanent:
+                return True
+            else:
+                target.apply_effect(card.effect)
+                return True
+        else:
+            return False
+        
     
     def discard_card(self, card: Card):
         self.player.hand.remove(card)
         self.player.deck.add_card(card)
     
     def end_turn(self) -> list[str]:
-        pass
+        for minion in self.active_player_minions:
+            target = minion.choose_target(self.get_player(), self.get_enemy(), self.get_player_minions(), self.get_enemy_minions())
+            target.apply_effect(minion.effect)
+            
+        
+        self.enemy.new_turn()
+        
+        return self.player.cards_played
+
     
 def main() -> None:
+    deck1 = CardDeck([Shield(), Heal(), Fireball(3), Heal(), Raptor(1, 0), Wyrm(1, 0), Shield(), Heal(), Heal(), Raptor(1, 0)])
+    hand1 = [Raptor(2, 2), Heal(), Shield(), Fireball(8)]
+    player = Hero(5, 0, 2, deck1, hand1)
+    deck2 = CardDeck([Heal(), Shield(), Heal(), Heal(), Raptor(1, 2), Wyrm(1, 3), Shield(), Heal(), Heal(), Raptor(2, 2)])
+    hand2 = [Wyrm(1, 0), Fireball(0), Raptor(1, 0), Shield()]
+    enemy = Hero(10, 0, 3, deck2, hand2)
+    player_minions = [Raptor(1, 0), Wyrm(1, 1)]
+    enemy_minions = [Wyrm(1, 2)]
+    model = HearthModel(player, player_minions, enemy, enemy_minions)
+    print(model)
     
+    print(str(model))
     pass
 
 if __name__ == "__main__":
