@@ -133,7 +133,6 @@ class CardDeck():
     def add_card(self, card: Card):
         self.deck.append(card)
         self.size += 1
-        self.cards_left += 1
 
 class Entity():
     def __init__(self, health: int, shield: int):
