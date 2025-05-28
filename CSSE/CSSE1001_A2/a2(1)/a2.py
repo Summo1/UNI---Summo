@@ -9,7 +9,7 @@ from display import HearthView
 
 # Define your classes and functions here
 class Card:
-    def __init__(self, name: str = "Card", description: str = 'A card', cost: int = 1, effect: dict[str, int] = {}, symbol = 'C', **kwargs):
+    def __init__(self, name: str = CARD_NAME, description: str = CARD_DESC, cost: int = 1, effect: dict[str, int] = {}, symbol = CARD_SYMBOL, **kwargs):
        self.name = name
        self.description = description
        self.cost = cost
@@ -18,10 +18,10 @@ class Card:
        self.permanent = False
 
     def __str__(self) -> str:
-        return f"{self.name}: {self.description}."
+        return f"{self.name}: {self.description}"
 
     def __repr__(self) -> str:
-        return 'Card()'
+        return f'{self.name}()'
 
     def get_symbol(self) -> str:
         return self.symbol
@@ -41,58 +41,52 @@ class Card:
 class Shield(Card):
     def __init__(self):
         super().__init__(
-            name = "Shield",
-            description = "Cast a protective shield that can absorb 5 damage",
+            name = SHIELD_NAME,
+            description = SHIELD_DESC,
             cost = 1,
-            effect = {"shield": 5},
-            symbol = "S"
+            effect = {SHIELD: 5},
+            symbol = SHIELD_SYMBOL
             
         )     
-    def __repr__(self):
-        return 'Shield()'
     
 class Heal(Card):
     def __init__(self):
         super().__init__(
-            name = "Heal",
-            description = "Cast an aura on target. It recovers 2 health",
+            name = HEAL_NAME,
+            description = HEAL_DESC,
             cost = 2,
-            effect = {"health": 2},
+            effect = {HEALTH: 2},
             symbol = "H"
             
         )     
-    def __repr__(self):
-        return 'Heal()' 
     
 
 class Fireball(Card):
     def __init__(self, turns_in_hand: int):
         self.turns_in_hand = turns_in_hand
         super().__init__(
-            name = "Fireball",
-            description = f"FIREBALL! Deals 3 + [turns in hand] damage. Currently dealing {3 + self.turns_in_hand} damage",
+            name = FIREBALL_NAME,
+            description = f"{FIREBALL_DESC} Currently dealing {3 + self.turns_in_hand} damage",
             cost = 3,
-            effect = {"damage": 3 + self.turns_in_hand},
+            effect = {DAMAGE: 3 + self.turns_in_hand},
             symbol = str(self.turns_in_hand)
         
         )
         
         
     def __repr__(self):
-        return f'Fireball({self.turns_in_hand})'  
+        return f'{self.name}({self.turns_in_hand})'  
             
     def increment_turn(self):
         self.turns_in_hand += 1
-        self.description = f"FIREBALL! Deals 3 + [turns in hand] damage. Currently dealing {3 + self.turns_in_hand} damage"
-        self.effect = {"damage": 3 + self.turns_in_hand}
+        self.description = f"{FIREBALL_DESC} Currently dealing {3 + self.turns_in_hand} damage."
+        self.effect = {DAMAGE: 3 + self.turns_in_hand}
         self.symbol = str(self.turns_in_hand)
 
 
 class CardDeck():
     def __init__(self, cards: list[Card]):
         self.deck = cards
-        self.size = len(cards)
-        self.cards_left = len(cards)
         
         pass
     
@@ -100,7 +94,7 @@ class CardDeck():
         deck = ''
         for item in self.deck:
             deck += item.symbol + ','
-        deck = deck[:len(deck)-1]
+        deck = deck[:len(deck)-1] #USE JOIN
         return deck
         
         
@@ -109,30 +103,27 @@ class CardDeck():
     
     
     def is_empty(self) -> bool:
-        if self.size == 0:
+        if len(self.deck) == 0:
             return True
         else:
             return False
 
     def remaining_count(self) -> int:
-        return self.size
+        return len(self.deck)
     
     def draw_cards(self, num: int) -> list[Card]:
         drawn_cards = []
-        if num > self.size:
-            num = self.size
+        if num > len(self.deck):
+            num = len(self.deck)
         
         drawn_cards = self.deck[:num]
         self.deck = self.deck[num:]
-        
-        self.size -= num
         
         
         return drawn_cards
     
     def add_card(self, card: Card):
         self.deck.append(card)
-        self.size += 1
 
 class Entity():
     def __init__(self, health: int, shield: int):
@@ -168,12 +159,12 @@ class Entity():
     
     def apply_effect(self, effect: dict[str, int]):
 
-        if 'damage' in effect:
-            self.apply_damage(effect['damage'])
-        if 'shield' in effect:
-            self.apply_shield(effect['shield'])
-        if 'health' in effect:
-            self.apply_health(effect['health'])
+        if DAMAGE in effect:
+            self.apply_damage(effect[DAMAGE])
+        if SHIELD in effect:
+            self.apply_shield(effect[SHIELD])
+        if HEALTH in effect:
+            self.apply_health(effect[HEALTH])
             
         pass
     
@@ -249,11 +240,11 @@ class Minion(Card, Entity):
     def __init__(self, health, shield):
         Card.__init__(
             self, 
-            name = 'Minion',
-            description = 'Summon a minion',
+            name = MINION_NAME,
+            description = MINION_DESC,
             cost = 2,
             effect = {},
-            symbol = 'M'
+            symbol = MINION_SYMBOL
         )
         Entity.__init__(self, health, shield)
         self.permanent = True
@@ -276,21 +267,14 @@ class Wyrm(Minion):
         Minion.__init__(self, health, shield)
         Card.__init__(
             self, 
-            name = 'Wyrm',
-            description = 'Summon a Mana Wyrm to buff your minions',
+            name = WYRM_NAME,
+            description = WYRM_DESC,
             cost = 2,
-            effect = {'health': 1, 'shield': 1},
-            symbol = 'W'
+            effect = {HEALTH: 1, SHIELD: 1},
+            symbol = WYRM_NAME
             
         )
         self.permanent = True
-        
-        
-    def __str__(self):
-        return f"{self.name}: {self.description}."
-    
-    def __repr__(self):
-        return f"{self.name}({self.health}, {self.shield})"
     
     def choose_target(self, ally_hero: Entity, enemy_hero: Entity, ally_minions: list[Entity], enemy_minions: list[Entity]) -> Entity:
         wyrm_target = ally_hero
@@ -307,21 +291,15 @@ class Raptor(Minion):
         Minion.__init__(self, health, shield)
         Card.__init__(
             self, 
-            name = 'Raptor',
-            description = 'Summon a Bloodfen Raptor to fight for you',
+            name = RAPTOR_NAME,
+            description = RAPTOR_DESC,
             cost = 2,
-            effect = {'damage': self.health},
-            symbol = 'R'
+            effect = {DAMAGE: self.health},
+            symbol = RAPTOR_SYMBOL
             
         )
         self.permanent = True
         
-        
-    def __str__(self):
-        return f"{self.name}: {self.description}."
-    
-    def __repr__(self):
-        return f"{self.name}({self.health}, {self.shield})"
     
     def choose_target(self, ally_hero: Entity, enemy_hero: Entity, ally_minions: list[Entity], enemy_minions: list[Entity]) -> Entity:
         raptor_target = enemy_hero
