@@ -342,12 +342,12 @@ class HearthModel():
         return self.active_enemy_minions  
     
     def has_won(self) -> bool:
-        if self.enemy.health == 0 or self.enemy.deck.size == 0:
+        if (self.enemy.health == 0 or self.enemy.deck.size == 0) and not (self.player.health == 0 or self.player.deck.size == 0):
             return True
         
     
     def has_lost(self) -> bool:
-        if self.player.health == 0 or self.player.deck.size == 0:
+        if (self.player.health == 0 or self.player.deck.size == 0) and not (self.enemy.health == 0 or self.enemy.deck.size == 0):
             return True
         
     
