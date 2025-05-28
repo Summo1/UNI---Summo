@@ -47,7 +47,7 @@ class Shield(Card):
             effect = {SHIELD: 5},
             symbol = SHIELD_SYMBOL
             
-        )     
+        )
     
 class Heal(Card):
     def __init__(self):
@@ -56,9 +56,10 @@ class Heal(Card):
             description = HEAL_DESC,
             cost = 2,
             effect = {HEALTH: 2},
-            symbol = "H"
+            symbol = HEAL_SYMBOL
             
         )     
+ 
     
 
 class Fireball(Card):
@@ -66,7 +67,7 @@ class Fireball(Card):
         self.turns_in_hand = turns_in_hand
         super().__init__(
             name = FIREBALL_NAME,
-            description = f"{FIREBALL_DESC} Currently dealing {3 + self.turns_in_hand} damage",
+            description = f"{FIREBALL_DESC} Currently dealing {3 + self.turns_in_hand} damage.",
             cost = 3,
             effect = {DAMAGE: 3 + self.turns_in_hand},
             symbol = str(self.turns_in_hand)
@@ -87,14 +88,13 @@ class Fireball(Card):
 class CardDeck():
     def __init__(self, cards: list[Card]):
         self.deck = cards
+        self.size = len(cards)
+        self.cards_left = len(cards)
         
         pass
     
     def __str__(self) -> str:
-        deck = ''
-        for item in self.deck:
-            deck += item.symbol + ','
-        deck = deck[:len(deck)-1] #USE JOIN
+        deck = ','.join(item.symbol for item in self.deck)
         return deck
         
         
@@ -103,27 +103,31 @@ class CardDeck():
     
     
     def is_empty(self) -> bool:
-        if len(self.deck) == 0:
+        if self.size == 0:
             return True
         else:
             return False
 
     def remaining_count(self) -> int:
-        return len(self.deck)
+        return self.size
     
     def draw_cards(self, num: int) -> list[Card]:
         drawn_cards = []
-        if num > len(self.deck):
-            num = len(self.deck)
+        if num > self.size:
+            num = self.size
         
         drawn_cards = self.deck[:num]
         self.deck = self.deck[num:]
+        
+        self.size -= num
         
         
         return drawn_cards
     
     def add_card(self, card: Card):
         self.deck.append(card)
+        self.size += 1
+        self.cards_left += 1
 
 class Entity():
     def __init__(self, health: int, shield: int):
@@ -165,8 +169,6 @@ class Entity():
             self.apply_shield(effect[SHIELD])
         if HEALTH in effect:
             self.apply_health(effect[HEALTH])
-            
-        pass
     
     def is_alive(self): 
         if self.health > 0:
@@ -187,7 +189,6 @@ class Hero(Entity):
         self.deck = deck
         self.hand = hand
         self.energy = max_energy
-        self.cards_played = []
         
     def is_alive(self):
         has_health = super().is_alive()
@@ -224,18 +225,19 @@ class Hero(Entity):
     def get_hand(self):
         return self.hand
     
+    
     def new_turn(self):
-        self.cards_played = []
         for card in self.hand:
             if isinstance(card, (Fireball)):
                 card.increment_turn()
         
-        drawn = self.deck.draw_cards(1)
-        if len(self.hand) < 5:
-            self.hand += drawn
+        drawn = self.deck.draw_cards(5-len(self.get_hand()))
+        self.hand += drawn
         self.max_energy += 1
         self.energy = self.max_energy
         
+        
+
 class Minion(Card, Entity):
     def __init__(self, health, shield):
         Card.__init__(
@@ -251,7 +253,7 @@ class Minion(Card, Entity):
         
     
     def __str__(self) -> str:
-        return f"{self.name}: {self.description}."
+        return f"{self.name}: {self.description}"
     
     def __repr__(self):
         return f'{self.name}({self.health}, {self.shield})'
@@ -263,7 +265,6 @@ class Minion(Card, Entity):
 
 class Wyrm(Minion):
     def __init__(self, health, shield):
-        Entity.__init__(self, health, shield)
         Minion.__init__(self, health, shield)
         Card.__init__(
             self, 
@@ -271,10 +272,11 @@ class Wyrm(Minion):
             description = WYRM_DESC,
             cost = 2,
             effect = {HEALTH: 1, SHIELD: 1},
-            symbol = WYRM_NAME
+            symbol = WYRM_SYMBOL
             
         )
         self.permanent = True
+        
     
     def choose_target(self, ally_hero: Entity, enemy_hero: Entity, ally_minions: list[Entity], enemy_minions: list[Entity]) -> Entity:
         wyrm_target = ally_hero
@@ -299,7 +301,7 @@ class Raptor(Minion):
             
         )
         self.permanent = True
-        
+
     
     def choose_target(self, ally_hero: Entity, enemy_hero: Entity, ally_minions: list[Entity], enemy_minions: list[Entity]) -> Entity:
         raptor_target = enemy_hero
@@ -322,9 +324,9 @@ class HearthModel():
         
     
     def __str__(self) -> str:
-        enemy_minions = ','.join(minion.symbol and str(minion.health) and str(minion.shield) for minion in self.active_enemy_minions)
-        player_minions = ','.join(minion.symbol and str(minion.health) and str(minion.shield) for minion in self.active_player_minions)
-        return f"{str(self.player)};{player_minions}|{str(self.enemy)};{enemy_minions}"
+        enemy_minions = ';'.join(f"{minion.symbol},{minion.health},{minion.shield}" for minion in self.active_enemy_minions)
+        player_minions = ';'.join(f"{minion.symbol},{minion.health},{minion.shield}" for minion in self.active_player_minions)
+        return f"{str(self.player)}|{player_minions}|{str(self.enemy)}|{enemy_minions}"
     
     def __repr__(self) -> str:
         return f"HearthModel({repr(self.player)}, {repr(self.active_player_minions)}, {repr(self.enemy)}, {repr(self.active_enemy_minions)})"
@@ -342,28 +344,33 @@ class HearthModel():
         return self.active_enemy_minions  
     
     def has_won(self) -> bool:
-        if (self.enemy.health == 0 or self.enemy.deck.size == 0) and not (self.player.health == 0 or self.player.deck.size == 0):
-            return True
+        return ((self.player.is_alive() and self.player.deck.size > 0) and (not self.enemy.is_alive() or self.enemy.deck.size == 0))
         
     
     def has_lost(self) -> bool:
-        if (self.player.health == 0 or self.player.deck.size == 0) and not (self.enemy.health == 0 or self.enemy.deck.size == 0):
-            return True
+        return ((not self.player.is_alive() or self.player.deck.size == 0) and (self.enemy.is_alive() or self.enemy.deck.size > 0))
         
     
     
     def play_card(self, card: Card, target: Entity) -> bool:
-        if card.cost <= self.player.energy:
-            self.player.spend_energy(card.cost)
-            self.player.hand.remove(card)
-            self.player.cards_played.append(card.name)
-            if card.is_permanent:
-                return True
-            else:
-                target.apply_effect(card.effect)
-                return True
-        else:
+        
+        if card.get_cost() > self.player.get_energy():
             return False
+        
+        if  isinstance(card, Minion):
+            if len(self.active_player_minions) <= 5:
+                self.get_player_minions().append(card)
+            else:
+                self.get_player_minions().append(card)
+                self.get_player_minions().remove(self.get_player_minions()[0])
+        else:
+            target.apply_effect(card.get_effect())
+            if target in self.get_enemy_minions() and target.get_health() <= 0:
+                self.active_enemy_minions.remove(target)
+        
+        self.player.get_hand().remove(card)
+        self.player.spend_energy(card.get_cost())
+        return True
         
     
     def discard_card(self, card: Card):
@@ -371,30 +378,59 @@ class HearthModel():
         self.player.deck.add_card(card)
     
     def end_turn(self) -> list[str]:
-        for minion in self.active_player_minions:
+        
+        for minion in self.get_player_minions():
             target = minion.choose_target(self.get_player(), self.get_enemy(), self.get_player_minions(), self.get_enemy_minions())
-            target.apply_effect(minion.effect)
-            
+            target.apply_effect(minion.get_effect())
+            if minion.get_effect() == DAMAGE and not target.is_alive() and target != self.get_enemy():
+                self.active_enemy_minions.remove(target)
         
         self.enemy.new_turn()
+        enemy_cards_played = []
+        if not self.get_enemy().is_alive():
+            return "Game Over"
         
-        return self.player.cards_played
+        for card in self.enemy.get_hand():
+            if card.get_cost() <= self.enemy.get_energy():
+                enemy_cards_played.append(card.get_name())
+                self.enemy.hand.remove(card)
+                self.enemy.spend_energy(card.get_cost())
+                target = Entity(0,0)
+                if card.is_permanent() == False:
+                    if card.get_effect() == DAMAGE:
+                        target = self.get_player()
+                        if self.get_player_minions():
+                            target = self.get_player_minions()[0]
+                    else:
+                        target = self.get_enemy()
+                    
+                    target.apply_effect(card.get_effect())
+                    
+                
+        
+        for enemy_minion in self.active_enemy_minions:
+            minion_target = enemy_minion.choose_target(self.get_enemy(), self.get_player(), self.get_enemy_minions(), self.get_player_minions())
+            minion_target.apply_effect(enemy_minion.get_effect())
+        
+        
+        self.player.new_turn()
+        return enemy_cards_played
 
     
 def main() -> None:
-    deck1 = CardDeck([Shield(), Heal(), Fireball(3), Heal(), Raptor(1, 0), Wyrm(1, 0), Shield(), Heal(), Heal(), Raptor(1, 0)])
-    hand1 = [Raptor(2, 2), Heal(), Shield(), Fireball(8)]
-    player = Hero(5, 0, 2, deck1, hand1)
-    deck2 = CardDeck([Heal(), Shield(), Heal(), Heal(), Raptor(1, 2), Wyrm(1, 3), Shield(), Heal(), Heal(), Raptor(2, 2)])
-    hand2 = [Wyrm(1, 0), Fireball(0), Raptor(1, 0), Shield()]
-    enemy = Hero(10, 0, 3, deck2, hand2)
-    player_minions = [Raptor(1, 0), Wyrm(1, 1)]
-    enemy_minions = [Wyrm(1, 2)]
-    model = HearthModel(player, player_minions, enemy, enemy_minions)
-    print(model)
+    deck1 = CardDeck([Shield(),Heal(),Fireball(3),Heal(),Raptor(1,0),Wyrm(1,0),Shield(),Heal(),Heal(),Raptor(1,0)])
+    hand1 = [Raptor(2,2), Heal(), Shield(),Fireball(8)]
+    player = Hero(5,0,2,deck1,hand1)
+    deck2 = CardDeck([Heal(),Shield(),Heal(),Heal(),Raptor(1,2),Wyrm(1,3),Shield(),Heal(),Heal(),Raptor(2,2)])
+    hand2 = [Wyrm(1,0),Fireball(0),Raptor(1,0),Shield()]
+    enemy = Hero(10,0,3,deck2,hand2)
+    player_minions = [Raptor(1,0),Wyrm(1,1)]
+    enemy_minions = [Wyrm(1,2)]
+    model = HearthModel(Hero(5, 5, 3, CardDeck([Heal(), Raptor(1, 0), Wyrm(1, 0), Shield(), Heal(), Heal(), Raptor(1, 0), Raptor(2, 2)]), [Heal(), Fireball(9), Shield(), Heal(), Fireball(3)]), [Raptor(2, 0), Wyrm(1, 1)], Hero(10, 0, 4, CardDeck([Shield(), Heal(), Heal(), Raptor(1, 2), Wyrm(1, 3), Shield(), Heal(), Heal(), Raptor(2, 2)]), [Fireball(1), Shield(), Heal()]), [Wyrm(2, 2), Wyrm(2, 1), Raptor(1, 0)])
     
-    print(str(model))
-    pass
+    
+    print(model.end_turn())
+
 
 if __name__ == "__main__":
     main()
