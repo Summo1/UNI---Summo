@@ -344,11 +344,11 @@ class HearthModel():
         return self.active_enemy_minions  
     
     def has_won(self) -> bool:
-        return ((self.player.is_alive() and self.player.deck.size > 0) and (not self.enemy.is_alive() or self.enemy.deck.size == 0))
+        return ((self.player.is_alive() and not self.player.get_deck().is_empty()) and (not self.enemy.is_alive() or self.enemy.get_deck().is_empty()))
         
     
     def has_lost(self) -> bool:
-        return ((not self.player.is_alive() or self.player.deck.size == 0) and (self.enemy.is_alive() or self.enemy.deck.size > 0))
+        return not self.has_won()
         
     
     
@@ -358,7 +358,7 @@ class HearthModel():
             return False
         
         if  isinstance(card, Minion):
-            if len(self.active_player_minions) <= 5:
+            if len(self.get_player_minions()) <= 5:
                 self.get_player_minions().append(card)
             else:
                 self.get_player_minions().append(card)
@@ -387,10 +387,11 @@ class HearthModel():
         
         self.enemy.new_turn()
         enemy_cards_played = []
+        enemy_hand = self.enemy.get_hand().copy()
         if not self.get_enemy().is_alive():
-            return "Game Over"
+            return
         
-        for card in self.enemy.get_hand():
+        for card in enemy_hand:
             if card.get_cost() <= self.enemy.get_energy():
                 enemy_cards_played.append(card.get_name())
                 self.enemy.hand.remove(card)
@@ -399,8 +400,6 @@ class HearthModel():
                 if card.is_permanent() == False:
                     if card.get_effect() == DAMAGE:
                         target = self.get_player()
-                        if self.get_player_minions():
-                            target = self.get_player_minions()[0]
                     else:
                         target = self.get_enemy()
                     
@@ -412,25 +411,13 @@ class HearthModel():
             minion_target = enemy_minion.choose_target(self.get_enemy(), self.get_player(), self.get_enemy_minions(), self.get_player_minions())
             minion_target.apply_effect(enemy_minion.get_effect())
         
-        
-        self.player.new_turn()
+        if self.enemy.is_alive():
+            self.player.new_turn()
         return enemy_cards_played
 
     
 def main() -> None:
-    deck1 = CardDeck([Shield(),Heal(),Fireball(3),Heal(),Raptor(1,0),Wyrm(1,0),Shield(),Heal(),Heal(),Raptor(1,0)])
-    hand1 = [Raptor(2,2), Heal(), Shield(),Fireball(8)]
-    player = Hero(5,0,2,deck1,hand1)
-    deck2 = CardDeck([Heal(),Shield(),Heal(),Heal(),Raptor(1,2),Wyrm(1,3),Shield(),Heal(),Heal(),Raptor(2,2)])
-    hand2 = [Wyrm(1,0),Fireball(0),Raptor(1,0),Shield()]
-    enemy = Hero(10,0,3,deck2,hand2)
-    player_minions = [Raptor(1,0),Wyrm(1,1)]
-    enemy_minions = [Wyrm(1,2)]
-    model = HearthModel(Hero(5, 5, 3, CardDeck([Heal(), Raptor(1, 0), Wyrm(1, 0), Shield(), Heal(), Heal(), Raptor(1, 0), Raptor(2, 2)]), [Heal(), Fireball(9), Shield(), Heal(), Fireball(3)]), [Raptor(2, 0), Wyrm(1, 1)], Hero(10, 0, 4, CardDeck([Shield(), Heal(), Heal(), Raptor(1, 2), Wyrm(1, 3), Shield(), Heal(), Heal(), Raptor(2, 2)]), [Fireball(1), Shield(), Heal()]), [Wyrm(2, 2), Wyrm(2, 1), Raptor(1, 0)])
-    
-    
-    print(model.end_turn())
-
+    pass
 
 if __name__ == "__main__":
     main()
