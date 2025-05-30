@@ -944,10 +944,10 @@ class Hearthstone():
         elif user_command.lower() == END_TURN_COMMAND:
             return user_command.lower()
         elif PLAY_COMMAND in user_command.lower():
-            return user_command[0:6].lower()
+            return user_command.lower()
         elif DISCARD_COMMAND in user_command.lower():
             return user_command.lower()
-        elif user_command.lower() == LOAD_COMMAND:
+        elif LOAD_COMMAND in user_command.lower():
             return user_command.lower()
         else:
             print(INVALID_COMMAND)
@@ -962,16 +962,16 @@ class Hearthstone():
             str: The target entity identifier.
         """
         input_target_for_card = input(ENTITY_PROMPT)
-        if 'm' in input_target_for_card.lower():
+        if PLAYER_SELECT in input_target_for_card.upper():
             return PLAYER_SELECT
-        elif 'o' in input_target_for_card.lower():
+        elif ENEMY_SELECT in input_target_for_card.upper():
             return ENEMY_SELECT
         elif int(input_target_for_card) in range(10):
             if int(input_target_for_card) <= 5:
-                target_for_card = int(input_target_for_card)-1
+                target_for_card = int(input_target_for_card) - 1 
                 return f'{ENEMY_SELECT}{str(target_for_card)}' 
             else:
-                target_for_card = int(input_target_for_card)-5
+                target_for_card = int(input_target_for_card) - 5
                 return f'{PLAYER_SELECT}{str(target_for_card)}'
         else:
             self.update_display([INVALID_ENTITY])
@@ -1002,17 +1002,42 @@ class Hearthstone():
         game = self.load_game(self._file)
         self.update_display([WELCOME_MESSAGE])
         game_on = True
-        while game_on:
-            input = self.get_command()
-            if input == HELP_MESSAGES:
+        while game_on: # keeps game going 
+            input = self.get_command() # initial input
+            if input == HELP_MESSAGES: # help
+                help_messages_for_view = []
                 for message in input:
-                    print(message)
-            elif DISCARD_COMMAND in input:
-                discarded_card = self._model._player._hand[int(input[-1])]
+                    help_messages_for_view.append(message)
+                self.update_display(help_messages_for_view)
+            elif DISCARD_COMMAND in input: # discard input, grabs the number then discards that card
+                discarded_card = self._model.get_player().get_hand()[int(input[-1])]
                 self._model.discard_card(discarded_card)
                 self.update_display([f'{DISCARD_MESSAGE}{discarded_card._name}'])
-            elif PLAY_COMMAND in input:
-                pass
+            elif PLAY_COMMAND in input: #splits the string at the space to grab the number
+                split_input = input.split(' ')
+                index_of_card_to_play = int(split_input[1][0]) - 1
+                card_to_play = self._model.get_player().get_hand()[index_of_card_to_play]
+                str_target_for_card = self.get_target_entity()
+                target_for_card = Entity(0,0)
+                if PLAYER_SELECT == str_target_for_card: # if the player chooses the player
+                    target_for_card = self._model.get_player()
+                elif PLAYER_SELECT in str_target_for_card:
+                    target_for_card = self._model.get_player_minions()[int(str_target_for_card[1])-1]
+                elif ENEMY_SELECT == str_target_for_card: # if the player chooses the player
+                    target_for_card = self._model.get_enemy()
+                elif ENEMY_SELECT in str_target_for_card:
+                    target_for_card = self._model.get_enemy_minions()[int(str_target_for_card[1])-1]    
+                self._model.play_card(card_to_play, target_for_card) # plays the card
+                self.update_display([f"{PLAY_MESSAGE}{card_to_play.get_name()}"])
+            elif LOAD_COMMAND in input:
+                load_file = input.split(' ')
+                try:
+                    file_manager = open(load_file[1], 'r')
+                    self.load_game(load_file[1])
+                    self.update_display([f'{GAME_LOAD_MESSAGE}{load_file[1]}'])
+                except (FileExistsError, FileNotFoundError, ValueError):
+                    self.update_display([f'{load_file[1]}{NO_FILE_MESSAGE}'])
+
             elif input == END_TURN_COMMAND:
                 actions = self._model.end_turn()
                 end_turn_message = []
