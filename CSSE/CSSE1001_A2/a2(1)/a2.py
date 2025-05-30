@@ -156,8 +156,7 @@ class Entity():
     
     def apply_shield(self, shield: int):
         self.shield += shield  
-        # print(f'shield applied: {shield}')  
-        # print(self)  
+
     
     def apply_health(self, health: int):
         self.health += health
@@ -250,6 +249,7 @@ class Hero(Entity):
 
 class Minion(Card, Entity):
     def __init__(self, health, shield):
+        Entity.__init__(self, health, shield)
         Card.__init__(
             self, 
             name = MINION_NAME,
@@ -258,7 +258,6 @@ class Minion(Card, Entity):
             effect = {},
             symbol = MINION_SYMBOL
         )
-        Entity.__init__(self, health, shield)
         self.permanent = True
         
     
@@ -360,10 +359,8 @@ class HearthModel():
         
     
     def __str__(self) -> str:
-        enemy_minions = ';'.join(f"{minion.get_symbol()},{minion.get_health()},{minion.get_shield()}" \
-                                 for minion in self.active_enemy_minions)
-        player_minions = ';'.join(f"{minion.get_symbol()},{minion.get_health()},{minion.get_shield()}" \
-                                  for minion in self.active_player_minions)
+        enemy_minions = ';'.join(f"{minion.get_symbol()},{minion.get_health()},{minion.get_shield()}" for minion in self.active_enemy_minions)
+        player_minions = ';'.join(f"{minion.get_symbol()},{minion.get_health()},{minion.get_shield()}" for minion in self.active_player_minions)
         return f"{str(self.player)}|{player_minions}|{str(self.enemy)}|{enemy_minions}"
     
     def __repr__(self) -> str:
@@ -423,7 +420,6 @@ class HearthModel():
                 self.get_player_minions(), 
                 self.get_enemy_minions()
                 )
-            # print(f'{minion.__repr__()} {target.__repr__()}')
             target.apply_effect(minion.get_effect())
             if target in self.active_enemy_minions and not target.is_alive():
                 self.active_enemy_minions.remove(target)
@@ -466,9 +462,7 @@ class HearthModel():
                 self.get_enemy_minions(), 
                 self.get_player_minions()
                 )
-            # print(f'{enemy_minion.__repr__()} {minion_target.__repr__()}')
             minion_target.apply_effect(enemy_minion.get_effect())
-            # print(minion_target.__repr__())
             if minion_target in self.active_player_minions and not minion_target.is_alive():
                 self.active_player_minions.remove(minion_target)
         
@@ -490,17 +484,21 @@ class Hearthstone():
         return f'Hearthstone({self.file})' 
 
     def string_played_minion_convert(self, string_rep: str) -> Card:
-        if string_rep[0] == RAPTOR_SYMBOL:
-            return Raptor(string_rep[1],string_rep[2])
-        elif string_rep[0] == WYRM_SYMBOL:
-            return Wyrm(string_rep[1],string_rep[2])
+        if string_rep != '':
+            if string_rep[0] == RAPTOR_SYMBOL:
+                return Raptor(string_rep[1],string_rep[2])
+            elif string_rep[0] == WYRM_SYMBOL:
+                return Wyrm(string_rep[1],string_rep[2])
+            elif string_rep[0] == MINION_SYMBOL:
+                return Minion(string_rep[1],string_rep[2])
 
     def string_unplayed_card_convert(self, string_rep: str) -> Card:
-
         if string_rep == RAPTOR_SYMBOL:
             return Raptor(1,0)
         elif string_rep == WYRM_SYMBOL:
             return Wyrm(1,0)
+        elif string_rep == MINION_SYMBOL:
+            return Minion(1,0)
         elif string_rep == HEAL_SYMBOL:
             return Heal()
         elif string_rep == SHIELD_SYMBOL:
@@ -510,9 +508,9 @@ class Hearthstone():
     
     def string_player_stats_convert(self, string_rep: str) -> list[int]:
         output = []
+        string_rep = string_rep.split(',')
         for character in string_rep:
-            if character != ',':
-                output.append(int(character))
+            output.append(int(character))
 
         return output
 
@@ -528,8 +526,6 @@ class Hearthstone():
         sep_parts = string_rep.split('|')
         for i in range(len(sep_parts)):
             sep_parts[i] = sep_parts[i].split(';')
-
-        model_output = ''
 
         string_rep_player_stats = sep_parts[PLAYER_INDEX][STATS_SUBINDEX]
         string_rep_player_deck = sep_parts[PLAYER_INDEX][DECK_SUBINDEX]
@@ -548,20 +544,24 @@ class Hearthstone():
         player_shield = player_stats[1]
         player_max_energy = player_stats[2]
         player_deck_list = []
+
         for card_in_deck in string_rep_player_deck:
             card_in_deck = self.string_unplayed_card_convert(card_in_deck)
-            player_deck_list.append(card_in_deck)
+            if card_in_deck is not None:
+                player_deck_list.append(card_in_deck)
         player_deck = CardDeck(player_deck_list)
 
         player_hand = []
         for card_in_hand in string_rep_player_hand:
             card_in_hand = self.string_unplayed_card_convert(card_in_hand)
-            player_hand.append(card_in_hand)
+            if card_in_hand is not None:
+                player_hand.append(card_in_hand)
 
         player_minions = []
         for player_active_minion in string_rep_player_minions:
             player_active_minion = self.string_played_minion_convert(player_active_minion)
-            player_minions.append(player_active_minion)
+            if player_active_minion is not None:
+                player_minions.append(player_active_minion)
         
 
         enemy_stats = self.string_player_stats_convert(string_rep_enemy_stats)
@@ -571,18 +571,21 @@ class Hearthstone():
         enemy_deck_list = []
         for card_in_enemy_deck in string_rep_enemy_deck:
             card_in_enemy_deck = self.string_unplayed_card_convert(card_in_enemy_deck)
-            enemy_deck_list.append(card_in_enemy_deck)
+            if card_in_enemy_deck is not None:
+                enemy_deck_list.append(card_in_enemy_deck)
         enemy_deck = CardDeck(enemy_deck_list)
 
         enemy_hand = []
         for card_in_enemy_hand in string_rep_enemy_hand:
             card_in_enemy_hand = self.string_unplayed_card_convert(card_in_enemy_hand)
-            enemy_hand.append(card_in_hand)
+            if card_in_enemy_hand is not None:
+                enemy_hand.append(card_in_enemy_hand)
 
         enemy_minions = []
         for enemy_active_minion in string_rep_enemy_minions:
             enemy_active_minion = self.string_played_minion_convert(enemy_active_minion)
-            enemy_minions.append(enemy_active_minion)
+            if enemy_active_minion is not None:
+                enemy_minions.append(enemy_active_minion)
 
 
         player_output = Hero(player_health, player_shield, player_max_energy, player_deck, player_hand)
@@ -637,11 +640,9 @@ class Hearthstone():
         save_loc.write() 
 
     def load_game(self, file: str):
-        print(file)
-        file_instance = file.open(file, 'r')
-        print(file_instance.read())
+        file_instance = open(file, 'r')
         data = file_instance.read()
-        return data
+        return self.build_model(data)
 
 
     def play(self):
@@ -650,14 +651,26 @@ class Hearthstone():
     
 def main() -> None:
     
-    stone = Hearthstone('practice_deck.txt')
+    deck1 = CardDeck([Shield(),Heal(),Fireball(3),Heal(),Raptor(1,0),Wyrm(1,0),Shield(),Heal(),Heal(),Raptor(1,0)])
+    hand1 = [Raptor(2,2), Heal(), Shield(),Fireball(8)]
+    player = Hero(5,0,2,deck1,hand1)
+    deck2 = CardDeck([Heal(),Shield(),Heal(),Heal(),Raptor(1,2),Wyrm(1,3),Shield(),Heal(),Heal(),Raptor(2,2)])
+    hand2 = [Wyrm(1,0),Fireball(0),Raptor(1,0),Shield()]
+    enemy = Hero(10,0,3,deck2,hand2)
+    player_minions = [Raptor(1,0),Wyrm(1,1)]
+    enemy_minions = [Wyrm(1,2)]
+    model = HearthModel(player,player_minions,enemy,enemy_minions)
+    print(model)
 
-    # string = stone.load_game(stone.file)
 
-    f = open(practice_deck.txt, 'r')
-    string = f.read()
+    stone = Hearthstone('CSSE/CSSE1001_A2/a2(1)/levels/deck1.txt')
+    loaded = stone.load_game(stone.file)
+    string = '20,0,1;S,S,H,H,0,0,W,S,0,H,R,R,0,S,S,S,H,0,H,W,W,R,W,W,0,S,H,S,S,0;H,S,0,S,S||20,0,0;S,S,H,H,0,0,W,S,0,H,R,R,0,S,S,S,H,0,H,W,W,R,W,W,0,S,H,S,S,0;H,S,0,S,S|'
+    constructed_model = stone.build_model(string)
     print(string)
-    pass
+    print(constructed_model)
+
+
 
 if __name__ == "__main__":
     main()
