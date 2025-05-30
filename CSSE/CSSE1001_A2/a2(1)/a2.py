@@ -21,40 +21,54 @@ class Card:
             symbol = CARD_SYMBOL, 
             **kwargs
             ):
-        """
-        Initialize a Card instance.
-        """
         self._name = name
         self._description = description
         self._cost = cost
         self._effect = effect
         self._symbol = symbol
-        self._permanent = False  # True for minions
+        self._permanent = False
 
     def __str__(self) -> str:
-        return f"{self.get_name()}: {self.get_description()}"
+        """
+        Return a string representation of the card in the format: "name: description".
+        """
+        return f"{self._name}: {self._description}"
+
     def __repr__(self) -> str:
-        return f'{self.get_name()}()'
+        """
+        Return a string representation of the card for debugging.
+        """
+        return f'{self._name}()'
+
     def get_symbol(self) -> str:
+        """
+        Return the symbol of the card.
+        """
         return self._symbol
+    
     def get_name(self) -> str:
+        """
+        Return the name of the card.
+        """
         return self._name
-    def get_description(self) -> str:
-        return self._description
+    
     def get_cost(self) -> int:
+        """
+        Return the energy cost to play the card.
+        """
         return self._cost
+
     def get_effect(self) -> dict[str, int]:
+        """
+        Return the effect dictionary of the card.
+        """
         return self._effect
+
     def is_permanent(self) -> bool:
+        """
+        Return whether the card is permanent (e.g., a minion).
+        """
         return self._permanent
-    def set_permanent(self, value: bool):
-        self._permanent = value
-    def set_description(self, desc: str):
-        self._description = desc
-    def set_effect(self, effect: dict[str, int]):
-        self._effect = effect
-    def set_symbol(self, symbol):
-        self._symbol = symbol
 
 class Shield(Card):
     """
@@ -112,28 +126,16 @@ class Fireball(Card):
         """
         Return a string representation of the Fireball card for debugging.
         """
-        return f'{self.get_name()}({self._turns_in_hand})'  
+        return f'{self._name}({self._turns_in_hand})'  
             
     def increment_turn(self):
         """
         Increment the number of turns the Fireball has been in hand and update its effect.
         """
         self._turns_in_hand += 1
-        self.set_description(f"{FIREBALL_DESC} Currently dealing {3 + self._turns_in_hand} damage.")
-        self.set_effect({DAMAGE: 3 + self._turns_in_hand})
-        self.set_symbol(str(self._turns_in_hand))
-
-    def get_turns_in_hand(self):
-        """
-        Get the number of turns the Fireball has been in hand.
-        """
-        return self._turns_in_hand
-
-    def set_turns_in_hand(self, value):
-        """
-        Set the number of turns the Fireball has been in hand.
-        """
-        self._turns_in_hand = value
+        self._description = f"{FIREBALL_DESC} Currently dealing {3 + self._turns_in_hand} damage."
+        self._effect = {DAMAGE: 3 + self._turns_in_hand}
+        self._symbol = str(self._turns_in_hand)
 
 class CardDeck():
     """
@@ -154,7 +156,7 @@ class CardDeck():
         """
         Return a string representation of the deck using card symbols.
         """
-        deck = ','.join(item.get_symbol() for item in self._deck)
+        deck = ','.join(item._symbol for item in self._deck)
         return deck
         
     def __repr__(self):
@@ -203,12 +205,6 @@ class CardDeck():
         self._size += 1
         self._cards_left += 1
 
-    def get_deck(self):
-        """
-        Get the list of cards in the deck.
-        """
-        return self._deck
-
 class Entity():
     """
     Represents an entity in the game (hero or minion) with health and shield.
@@ -228,13 +224,13 @@ class Entity():
         """
         Return a string representation of the Entity for debugging.
         """
-        return f"Entity({self.get_health()}, {self.get_shield()})"
+        return f"Entity({self._health}, {self._shield})"
     
     def __str__(self):
         """
         Return a string representation of the Entity.
         """
-        return f"{self.get_health()},{self.get_shield()}"
+        return f"{self._health},{self._shield}"
     
     def get_health(self):
         """
@@ -331,7 +327,7 @@ class Hero(Entity):
         Return True if the hero is alive and has cards in their deck, False otherwise.
         """
         has_health = super().is_alive()
-        if has_health and self.get_deck().remaining_count() > 0:
+        if has_health and self._deck.remaining_count() > 0:
             return True
         else:
             return False
@@ -340,14 +336,14 @@ class Hero(Entity):
         """
         Return a string representation of the hero, including health, shield, energy, deck, and hand.
         """
-        hand = ','.join(card.get_symbol() for card in self.get_hand())
-        return f"{self.get_health()},{self.get_shield()},{self.get_max_energy()};{self.get_deck()};{hand}"
+        hand = ','.join(card._symbol for card in self._hand)
+        return f"{self._health},{self._shield},{self._max_energy};{self._deck};{hand}"
 
     def __repr__(self):
         """
         Return a string representation of the Hero for debugging.
         """
-        return f"Hero({self.get_health()}, {self.get_shield()}, {self.get_max_energy()}, {repr(self.get_deck())}, {[card for card in self.get_hand()]})"
+        return f"Hero({self._health}, {self._shield}, {self._max_energy}, {repr(self._deck)}, {[card for card in self._hand]})"
     
     def get_energy(self):
         """
@@ -392,10 +388,10 @@ class Hero(Entity):
         """
         Start a new turn for the hero: increment fireball turns, draw up to max hand, and refresh energy.
         """
-        for card in self.get_hand():
-            if isinstance(card, Fireball):
+        for card in self._hand:
+            if isinstance(card, (Fireball)):
                 card.increment_turn()
-        drawn = self.get_deck().draw_cards(MAX_HAND-len(self.get_hand()))
+        drawn = self._deck.draw_cards(MAX_HAND-len(self._hand))
         self._hand += drawn
         self._max_energy += 1
         self._energy = self._max_energy
@@ -433,7 +429,7 @@ class Minion(Card, Entity):
             effect = {},
             symbol = MINION_SYMBOL
         )
-        self.set_permanent(True)
+        self._permanent = True
     
     def __str__(self) -> str:
         """
@@ -443,7 +439,7 @@ class Minion(Card, Entity):
             >>> str(Minion(3, 2))
             'Minion: A basic minion.'
         """
-        return f"{self.get_name()}: {self.get_description()}"
+        return f"{self._name}: {self._description}"
     
     def __repr__(self):
         """
@@ -453,7 +449,7 @@ class Minion(Card, Entity):
             >>> repr(Minion(3, 2))
             'Minion(3, 2)'
         """
-        return f'{self.get_name()}({self.get_health()}, {self.get_shield()})'
+        return f'{self._name}({self._health}, {self._shield})'
     
     def choose_target(
             self, 
@@ -498,7 +494,7 @@ class Wyrm(Minion):
             effect = {HEALTH: 1, SHIELD: 1},
             symbol = WYRM_SYMBOL
         )
-        self.set_permanent(True)
+        self._permanent = True
     
     def choose_target(
             self, 
@@ -548,7 +544,7 @@ class Raptor(Minion):
             effect = {DAMAGE: health},
             symbol = RAPTOR_SYMBOL
         )
-        self.set_permanent(True)
+        self._permanent = True
 
     def get_effect(self):
         """
@@ -559,7 +555,7 @@ class Raptor(Minion):
             >>> r.get_effect()
             {'damage': 4}
         """
-        return {DAMAGE: self.get_health()}
+        return {DAMAGE: self._health}
     
     def choose_target(
             self, 
@@ -610,15 +606,15 @@ class HearthModel():
         """
         Return a string representation of the game state.
         """
-        enemy_minions = ';'.join(f"{minion.get_symbol()},{minion.get_health()},{minion.get_shield()}" for minion in self.get_enemy_minions())
-        player_minions = ';'.join(f"{minion.get_symbol()},{minion.get_health()},{minion.get_shield()}" for minion in self.get_player_minions())
-        return f"{str(self.get_player())}|{player_minions}|{str(self.get_enemy())}|{enemy_minions}"
+        enemy_minions = ';'.join(f"{minion._symbol},{minion._health},{minion._shield}" for minion in self._active_enemy_minions)
+        player_minions = ';'.join(f"{minion._symbol},{minion._health},{minion._shield}" for minion in self._active_player_minions)
+        return f"{str(self._player)}|{player_minions}|{str(self._enemy)}|{enemy_minions}"
     
     def __repr__(self) -> str:
         """
         Return a string representation of the HearthModel for debugging.
         """
-        return f"HearthModel({repr(self.get_player())}, {repr(self.get_player_minions())}, {repr(self.get_enemy())}, {repr(self.get_enemy_minions())})"
+        return f"HearthModel({repr(self._player)}, {repr(self._active_player_minions)}, {repr(self._enemy)}, {repr(self._active_enemy_minions)})"
     
     def get_player(self) -> Hero:
         """
@@ -648,14 +644,14 @@ class HearthModel():
         """
         Return True if the player has won the game.
         """
-        return (self.get_player().is_alive() and not self.get_player().get_deck().is_empty() and \
-               (not self.get_enemy().is_alive() or self.get_enemy().get_deck().is_empty()))
+        return (self._player.is_alive() and not self._player._deck.is_empty() and \
+               (not self._enemy.is_alive() or self._enemy._deck.is_empty()))
     
     def has_lost(self) -> bool:
         """
         Return True if the player has lost the game.
         """
-        return (not self.get_player().is_alive() or self.get_player().get_deck().is_empty())    
+        return (not self._player.is_alive() or self._player._deck.is_empty())    
     
     def play_card(self, card: Card, target: Entity) -> bool:
         """
@@ -667,18 +663,18 @@ class HearthModel():
         Returns:
             bool: True if the card was played, False otherwise.
         """
-        if card.get_cost() > self.get_player().get_energy():
+        if card._cost > self._player._energy:
             return False
         if  isinstance(card, Minion):
-            if len(self.get_player_minions()) >= MAX_MINIONS:
-                self.get_player_minions().pop(0)
-            self.get_player_minions().append(card)
+            if len(self._active_player_minions) >= MAX_MINIONS:
+                self._active_player_minions.pop(0)
+            self._active_player_minions.append(card)
         else:
-            target.apply_effect(card.get_effect())
-            if target in self.get_enemy_minions() and not target.is_alive():
-                self.get_enemy_minions().remove(target)
-        self.get_player().get_hand().remove(card)
-        self.get_player().spend_energy(card.get_cost())
+            target.apply_effect(card._effect)
+            if target in self._active_enemy_minions and not target.is_alive():
+                self._active_enemy_minions.remove(target)
+        self._player._hand.remove(card)
+        self._player.spend_energy(card._cost)
         return True
     
     def discard_card(self, card: Card):
@@ -689,9 +685,9 @@ class HearthModel():
             card (Card): The card to discard.
         """
         if isinstance(card, Fireball):
-            card.set_turns_in_hand(0)
-        self.get_player().get_hand().remove(card)
-        self.get_player().get_deck().add_card(card)
+            card._turns_in_hand = 0
+        self._player._hand.remove(card)
+        self._player._deck.add_card(card)
     
     def end_turn(self) -> list[str]:
         """
@@ -700,58 +696,58 @@ class HearthModel():
         Returns:
             list[str]: The names of enemy cards played.
         """
-        for minion in self.get_player_minions():
+        for minion in self._active_player_minions:
             target = minion.choose_target(
-                self.get_player(), 
-                self.get_enemy(), 
-                self.get_player_minions(), 
-                self.get_enemy_minions()
+                self._player, 
+                self._enemy, 
+                self._active_player_minions, 
+                self._active_enemy_minions
                 )
             target.apply_effect(minion.get_effect())
-            if target in self.get_enemy_minions() and not target.is_alive():
-                self.get_enemy_minions().remove(target)
+            if target in self._active_enemy_minions and not target.is_alive():
+                self._active_enemy_minions.remove(target)
         
-        self.get_enemy().new_turn()
+        self._enemy.new_turn()
         enemy_cards_played = []
         
         if self.has_won() or self.has_lost():
             return enemy_cards_played
         
-        enemy_hand_copy = self.get_enemy().get_hand().copy()
+        enemy_hand_copy = self._enemy._hand.copy()
         i = 0
         while i < len(enemy_hand_copy):
             card = enemy_hand_copy[i]
-            if card.get_cost() <= self.get_enemy().get_energy():
-                enemy_cards_played.append(card.get_name())
-                self.get_enemy().get_hand().remove(card)
-                self.get_enemy().spend_energy(card.get_cost())
+            if card._cost <= self._enemy._energy:
+                enemy_cards_played.append(card._name)
+                self._enemy._hand.remove(card)
+                self._enemy.spend_energy(card._cost)
                 if not isinstance(card, Minion):
-                    target = self.get_player() 
-                    if DAMAGE not in card.get_effect():
-                        target = self.get_enemy()
-                    target.apply_effect(card.get_effect())
+                    target = self._player 
+                    if DAMAGE not in card._effect:
+                        target = self._enemy
+                    target.apply_effect(card._effect)
                 else:
-                    if len(self.get_enemy_minions()) >= MAX_MINIONS:
-                        self.get_enemy_minions().pop(0)
-                    self.get_enemy_minions().append(card)
-                enemy_hand_copy = self.get_enemy().get_hand().copy()
+                    if len(self._active_enemy_minions) >= MAX_MINIONS:
+                        self._active_enemy_minions.pop(0)
+                    self._active_enemy_minions.append(card)
+                enemy_hand_copy = self._enemy._hand.copy()
                 i = 0
             else:
                 i += 1
 
-        for enemy_minion in self.get_enemy_minions():
+        for enemy_minion in self._active_enemy_minions:
             minion_target = enemy_minion.choose_target(
-                self.get_enemy(), 
-                self.get_player(), 
-                self.get_enemy_minions(), 
-                self.get_player_minions()
+                self._enemy, 
+                self._player, 
+                self._active_enemy_minions, 
+                self._active_player_minions
                 )
             minion_target.apply_effect(enemy_minion.get_effect())
-            if minion_target in self.get_player_minions() and not minion_target.is_alive():
-                self.get_player_minions().remove(minion_target)
+            if minion_target in self._active_player_minions and not minion_target.is_alive():
+                self._active_player_minions.remove(minion_target)
         
         if not self.has_won() and not self.has_lost():
-            self.get_player().new_turn()
+            self._player.new_turn()
         return enemy_cards_played
 
 class Hearthstone():
@@ -1012,9 +1008,9 @@ class Hearthstone():
                 for message in input:
                     print(message)
             elif DISCARD_COMMAND in input:
-                discarded_card = self._model.get_player().get_hand()[int(input[-1])]
+                discarded_card = self._model._player._hand[int(input[-1])]
                 self._model.discard_card(discarded_card)
-                self.update_display([f'{DISCARD_MESSAGE}{discarded_card.get_name()}'])
+                self.update_display([f'{DISCARD_MESSAGE}{discarded_card._name}'])
             elif PLAY_COMMAND in input:
                 pass
             elif input == END_TURN_COMMAND:
