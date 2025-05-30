@@ -774,7 +774,8 @@ class Hearthstone():
             file (str): The file path to load the game state from.
         """
         self.file = file
-        self.model = self.load_game(self.file)
+        self.model = 0
+        self.load_game(self.file)
         self.view = HearthView()
 
     def __str__(self) -> str:
@@ -954,7 +955,7 @@ class Hearthstone():
         elif user_command.lower() == END_TURN_COMMAND:
             return user_command.lower()
         elif PLAY_COMMAND in user_command.lower():
-            return user_command[0:5].lower()
+            return user_command[0:6].lower()
         elif DISCARD_COMMAND in user_command.lower():
             return user_command.lower()
         elif user_command.lower() == LOAD_COMMAND:
@@ -984,6 +985,7 @@ class Hearthstone():
                 target_for_card = int(input_target_for_card)-5
                 return f'{PLAYER_SELECT}{str(target_for_card)}'
         else:
+            self.update_display([INVALID_ENTITY])
             self.get_target_entity()
 
     def save_game(self):
@@ -1034,12 +1036,28 @@ class Hearthstone():
                 end_turn_message.append(GAME_SAVE_MESSAGE)
                 self.update_display(end_turn_message)
 
+        if self.model.has_won():
+            self.update_display([WIN_MESSAGE])
+        else:
+            self.update_display([LOSS_MESSAGE])
+
+def play_game(file: str):
+    """
+    Constructs a controller and plays a single game of Hearthstone.
+    If loading the given file fails with ValueError or FileNotFoundError,
+    attempts to load from 'autosave.txt' instead.
+    """
+    try:
+        controller = Hearthstone(file)
+    except (ValueError, FileNotFoundError):
+        controller = Hearthstone('autosave.txt')
+    controller.play()
+
 def main() -> None:
     """
     The main entry point for the program.
     """
-    game_state = Hearthstone('CSSE/CSSE1001_A2/a2(1)/practice_deck.txt')
-    game_state.play()
+    play_game('levels/deck1.txt')
 
 if __name__ == "__main__":
     main()
