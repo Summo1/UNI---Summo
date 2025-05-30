@@ -474,7 +474,7 @@ class HearthModel():
 class Hearthstone():
     def __init__(self, file: str):
         self.file = file
-        # self.model = HearthModel
+        self.model = self.load_game(self.file)
         self.view = HearthView()
 
     def __str__(self) -> str:
@@ -598,46 +598,53 @@ class Hearthstone():
         return model_output
 
     def update_display(self, messages: list[str]):
-        pass 
+        view = HearthView() 
+        view.update(self.model.get_player(), self.model.get_enemy(),self.model.get_player_minions(),self.model.get_enemy_minions(), messages)
+    
 
-    # def get_command(self) -> str:
-    #     user_command = input(COMMAND_PROMPT) 
-    #     if user_command.lower() == HELP_COMMAND:
-    #         return HELP_MESSAGES
-    #     elif user_command.lower() == END_TURN_COMMAND:
-    #         return self.model.end_turn()
-    #     elif PLAY_COMMAND in user_command.lower():
-    #         card_to_play = user_command[len(user_command-1)]
+
+    def get_command(self) -> str:
+        user_command = input(COMMAND_PROMPT) 
+        if user_command.lower() == HELP_COMMAND:
+            return HELP_MESSAGES
+        elif user_command.lower() == END_TURN_COMMAND:
+            return self.model.end_turn()
+        elif PLAY_COMMAND in user_command.lower():
+            card_to_play = user_command[len(user_command)-1]
             
-    #     elif user_command.lower() == DISCARD_COMMAND:
-    #         return DISCARD_COMMAND
-    #     elif user_command.lower() == LOAD_COMMAND:
-    #         return LOAD_COMMAND
-    #     else:
-    #         return INVALID_COMMAND
+        elif user_command.lower() == DISCARD_COMMAND:
+            return DISCARD_COMMAND
+        elif user_command.lower() == LOAD_COMMAND:
+            return LOAD_COMMAND
+        else:
+            print(INVALID_COMMAND)
+            self.get_command()
+                  
 
-    # def get_target_entity(self) -> str:
-    #     input_target_for_card = input(ENTITY_PROMPT)
-    #     target_for_card = ''
-    #     if 'm' in input_target_for_card.lower():
-    #         target_for_card = self.model.get_player()
-    #         return str(target_for_card)
-    #     elif 'o' in input_target_for_card.lower():
-    #         target_for_card = self.model.get_enemy()
-    #         return str(target_for_card)
-    #     elif int(input_target_for_card) in range(10):
-    #         if int(input_target_for_card) <= 5:
-    #             target_for_card = int(input_target_for_card)-1
-    #             return f'{PLAYER_SELECT}{str(target_for_card)}'
-    #         else:
-    #             target_for_card = int(input_target_for_card)-6
-    #             return f'{ENEMY_SELECT}{str(target_for_card)}' 
-    #     else:
-    #         self.get_target_entity()
+    def get_target_entity(self) -> str:
+        input_target_for_card = input(ENTITY_PROMPT)
+        # target_for_card = ''
+        if 'm' in input_target_for_card.lower():
+            # target_for_card = self.model.get_player()
+            return PLAYER_SELECT
+        elif 'o' in input_target_for_card.lower():
+            # target_for_card = self.model.get_enemy()
+            return ENEMY_SELECT
+        elif int(input_target_for_card) in range(10):
+            if int(input_target_for_card) <= 5:
+                # target_for_card = int(input_target_for_card)
+                target_for_card = int(input_target_for_card)-1
+                return f'{ENEMY_SELECT}{str(target_for_card)}' 
+                
+            else:
+                target_for_card = int(input_target_for_card)-5
+                return f'{PLAYER_SELECT}{str(target_for_card)}'
+        else:
+            self.get_target_entity()
 
     def save_game(self):
         save_loc = open(SAVE_LOC, 'w')
-        save_loc.write() 
+        save_loc.write(self.model.__str__()) 
 
     def load_game(self, file: str):
         file_instance = open(file, 'r')
@@ -651,24 +658,20 @@ class Hearthstone():
     
 def main() -> None:
     
-    deck1 = CardDeck([Shield(),Heal(),Fireball(3),Heal(),Raptor(1,0),Wyrm(1,0),Shield(),Heal(),Heal(),Raptor(1,0)])
-    hand1 = [Raptor(2,2), Heal(), Shield(),Fireball(8)]
-    player = Hero(5,0,2,deck1,hand1)
-    deck2 = CardDeck([Heal(),Shield(),Heal(),Heal(),Raptor(1,2),Wyrm(1,3),Shield(),Heal(),Heal(),Raptor(2,2)])
-    hand2 = [Wyrm(1,0),Fireball(0),Raptor(1,0),Shield()]
-    enemy = Hero(10,0,3,deck2,hand2)
-    player_minions = [Raptor(1,0),Wyrm(1,1)]
-    enemy_minions = [Wyrm(1,2)]
-    model = HearthModel(player,player_minions,enemy,enemy_minions)
-    print(model)
+    # deck1 = CardDeck([Shield(),Heal(),Fireball(3),Heal(),Raptor(1,0),Wyrm(1,0),Shield(),Heal(),Heal(),Raptor(1,0)])
+    # hand1 = [Raptor(2,2), Heal(), Shield(),Fireball(8)]
+    # player = Hero(5,0,2,deck1,hand1)
+    # deck2 = CardDeck([Heal(),Shield(),Heal(),Heal(),Raptor(1,2),Wyrm(1,3),Shield(),Heal(),Heal(),Raptor(2,2)])
+    # hand2 = [Wyrm(1,0),Fireball(0),Raptor(1,0),Shield()]
+    # enemy = Hero(10,0,3,deck2,hand2)
+    # player_minions = [Raptor(1,0),Wyrm(1,1)]
+    # enemy_minions = [Wyrm(1,2)]
+    # model = HearthModel(player,player_minions,enemy,enemy_minions)
+    # print(model)
 
 
     stone = Hearthstone('CSSE/CSSE1001_A2/a2(1)/levels/deck1.txt')
-    loaded = stone.load_game(stone.file)
-    string = '20,0,1;S,S,H,H,0,0,W,S,0,H,R,R,0,S,S,S,H,0,H,W,W,R,W,W,0,S,H,S,S,0;H,S,0,S,S||20,0,0;S,S,H,H,0,0,W,S,0,H,R,R,0,S,S,S,H,0,H,W,W,R,W,W,0,S,H,S,S,0;H,S,0,S,S|'
-    constructed_model = stone.build_model(string)
-    print(string)
-    print(constructed_model)
+    stone.update_display(['Hello', 'world'])
 
 
 
